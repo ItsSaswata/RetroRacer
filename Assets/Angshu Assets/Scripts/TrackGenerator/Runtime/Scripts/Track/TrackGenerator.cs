@@ -12,6 +12,18 @@ namespace Track
     [RequireComponent(typeof(SplineContainer), typeof(MeshFilter), typeof(MeshRenderer))]
     public abstract class TrackGenerator : MonoBehaviour
     {
+        // Add new serialized field for checkpoint prefab
+        [Header("Checkpoint Configuration")]
+        [SerializeField, Tooltip("Checkpoint prefab to place along the track")]
+        private GameObject checkpointPrefab;
+        
+        [SerializeField, Tooltip("Number of checkpoints to place along the track"), Range(4, 100)]
+        private int numberOfCheckpoints = 10;
+        
+        [SerializeField, Tooltip("Vertical offset above track surface")]
+        private float checkpointVerticalOffset = 1f;
+        public int NumberOfCheckpoints => numberOfCheckpoints;
+
         [field: SerializeField, Tooltip("The resolution of the track. The number of segments that'll be used to generate the track mesh.")]
         public int Resolution { get; private set; } = 10000;
 
@@ -83,6 +95,56 @@ namespace Track
             StartCoroutine(StartRoutines());
         }
 
+        // Add new method for checkpoint generation
+        private IEnumerator GenerateCheckpoints()
+        {
+            yield return new WaitForSeconds(0.1f);
+            
+            if (checkpointPrefab == null || vertices.Count < 2)
+                yield break;
+        
+            // Clear existing checkpoints
+            foreach (Transform child in transform)
+            {
+                if (child.name.StartsWith("Checkpoint"))
+                    Destroy(child.gameObject);
+            }
+        
+            // Calculate equal spacing based on spline length
+            float totalLength = Spline.GetLength();
+            float interval = totalLength / numberOfCheckpoints;
+            
+            // Offset starting position to prevent overlap
+            float currentDistance = interval * 0.5f;
+            
+            for (int i = 0; i < numberOfCheckpoints; i++)
+            {
+                // Get position and direction from spline
+                Spline.Evaluate(Spline.ConvertIndexUnit(currentDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized), 
+                    out float3 position, 
+                    out float3 tangent, 
+                    out float3 up);
+                
+                Vector3 worldPos = transform.TransformPoint(position);
+                Quaternion rotation = Quaternion.LookRotation(transform.TransformDirection(tangent));
+                
+                // Apply vertical offset using track width
+                worldPos += Vector3.up * (Width * 0.5f + checkpointVerticalOffset);
+                
+                GameObject checkpoint = Instantiate(
+                    checkpointPrefab,
+                    worldPos,
+                    rotation,
+                    transform
+                );
+                checkpoint.name = $"Checkpoint_{i}";
+                
+                currentDistance += interval;
+                if (currentDistance > totalLength) break;
+            }
+        }
+
+        // Modify existing coroutine to include checkpoints
         public IEnumerator StartRoutines()
         {
             StartCoroutine(GenerateVertices());
@@ -90,6 +152,8 @@ namespace Track
             StartCoroutine(GenerateSpline());
             yield return new WaitForSeconds(0.4f);
             StartCoroutine(GenerateMesh());
+            yield return new WaitForSeconds(0.4f);
+            StartCoroutine(GenerateCheckpoints());
         }
 
         protected abstract Path GetPath();

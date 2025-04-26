@@ -14,8 +14,8 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
-  m_Fog: 0
-  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_Fog: 1
+  m_FogColor: {r: 1, g: 0.6117647, b: 0.52156866, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.01
   m_LinearFogStart: 0
@@ -25,8 +25,8 @@ RenderSettings:
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 0
-  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 7ed994c1997814049b44c36a823bba6c, type: 2}
+  m_SubtractiveShadowColor: {r: 1, g: 0.6117647, b: 0.52156866, a: 1}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 2441c79940171dc43b33badf9fe97828, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -264,7 +264,9 @@ Transform:
   m_GameObject: {fileID: 262375647}
   serializedVersion: 2
   m_LocalRotation: {x: 0.076878995, y: -0.00000001239082, z: 9.554214e-10, w: 0.99704045}
-  m_LocalPosition: {x: 205.97182, y: 104.58444, z: 339.3482}
+
+  m_LocalPosition: {x: 213.35681, y: 103.45752, z: 334.76794}
+
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -467,18 +469,9 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
---- !u!114 &1274136639 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4139473371144328084, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-  m_PrefabInstance: {fileID: 2018493463}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!1001 &2018493463
+
+--- !u!1001 &5179262855245981045
+
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -582,4 +575,6 @@ SceneRoots:
   - {fileID: 262375650}
   - {fileID: 1157603933}
   - {fileID: 212533945}
-  - {fileID: 2018493463}
+
+  - {fileID: 5179262855245981045}
+
