@@ -127,7 +127,7 @@ namespace Track
                 
                 Vector3 worldPos = transform.TransformPoint(position);
                 Quaternion rotation = Quaternion.LookRotation(transform.TransformDirection(tangent));
-                
+                rotation *= Quaternion.Euler(0, 90, 0); 
                 // Apply vertical offset using track width
                 worldPos += Vector3.up * (Width * 0.5f + checkpointVerticalOffset);
                 
