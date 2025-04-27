@@ -21,6 +21,11 @@ namespace Ashsvp
 
         public AudioSystem AudioSystem;
         private int currentGearTemp;
+        
+        void Awake()
+        {
+            virtualCamera = GetComponentInChildren<CinemachineCamera>();
+        }
 
         void Start()
         {
