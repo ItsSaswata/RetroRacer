@@ -263,10 +263,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 262375647}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.076878995, y: -0.00000001239082, z: 9.554214e-10, w: 0.99704045}
-
-  m_LocalPosition: {x: 213.35681, y: 103.45752, z: 334.76794}
-
+  m_LocalRotation: {x: 0.076879814, y: 0.0000007648754, z: -0.00000005897803, w: 0.9970404}
+  m_LocalPosition: {x: 205.97182, y: 104.58339, z: 339.34802}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -469,9 +467,7 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
-
 --- !u!1001 &5179262855245981045
-
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -523,46 +519,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ash_Glauke-288
       objectReference: {fileID: 0}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: maxFOV
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: virtualCamera
-      value: 
-      objectReference: {fileID: 1274136639}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: fovCurve.m_Curve.Array.data[0].value
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: fovCurve.m_Curve.Array.data[1].value
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: fovCurve.m_Curve.Array.data[0].inSlope
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: fovCurve.m_Curve.Array.data[1].inSlope
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: fovCurve.m_Curve.Array.data[0].outSlope
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: fovCurve.m_Curve.Array.data[1].outSlope
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: fovCurve.m_Curve.Array.data[0].tangentMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6441964672994716917, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
-      propertyPath: fovCurve.m_Curve.Array.data[1].tangentMode
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -575,6 +531,4 @@ SceneRoots:
   - {fileID: 262375650}
   - {fileID: 1157603933}
   - {fileID: 212533945}
-
   - {fileID: 5179262855245981045}
-

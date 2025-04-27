@@ -204,6 +204,17 @@ MonoBehaviour:
   AutoCounterSteer: 0
   DownForce: 5
   airAngularDrag: 0.2
+  nitroAccelerationMultiplier: 2
+  nitroMaxSpeedMultiplier: 1.5
+  nitroDuration: 3
+  nitroCooldown: 5
+  nitroDepletionRate: 0.3
+  nitroRefillRate: 0.1
+  currentNitro: 100
+  isNitroActive: 0
+  isNitroCooldown: 0
+  nitroParticles: {fileID: 0}
+  nitroSound: {fileID: 0}
   VehicleBody: {fileID: 6124419444456439150}
   forwardBodyTilt: 3
   sidewaysBodyTilt: 4
@@ -231,6 +242,12 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     OnGearChange:
+      m_PersistentCalls:
+        m_Calls: []
+    OnNitroStart:
+      m_PersistentCalls:
+        m_Calls: []
+    OnNitroEnd:
       m_PersistentCalls:
         m_Calls: []
   steerInput: 0
@@ -511,6 +528,33 @@ MonoBehaviour:
   VehicleSpeed: 0
   currentGear: 0
   gearSpeeds: 280000005000000078000000a0000000dc000000
+  virtualCamera: {fileID: 0}
+  fovCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 60
+      inSlope: 0
+      outSlope: 15
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 75
+      inSlope: 15
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  minFOV: 60
+  maxFOV: 75
   AudioSystem: {fileID: 7010274353727326416}
 --- !u!114 &4236488309169122410
 MonoBehaviour:
@@ -644,7 +688,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0a5fa0e3de53444488e88fe9ce77ebee, type: 2}
+  - {fileID: 2100000, guid: 432bfa456457044e1926a80b32cd2f59, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -762,8 +806,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0a5fa0e3de53444488e88fe9ce77ebee, type: 2}
-  - {fileID: 2100000, guid: 33369fea361b12c48acb7ddcc9032afa, type: 2}
+  - {fileID: 2100000, guid: 09dd114a7c81d4bee96d18ec88d96f72, type: 2}
+  - {fileID: 2100000, guid: 745d072328c1f425eb6081622361dc40, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1386,7 +1430,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0a5fa0e3de53444488e88fe9ce77ebee, type: 2}
+  - {fileID: 2100000, guid: 432bfa456457044e1926a80b32cd2f59, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1472,7 +1516,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0a5fa0e3de53444488e88fe9ce77ebee, type: 2}
+  - {fileID: 2100000, guid: 432bfa456457044e1926a80b32cd2f59, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1643,7 +1687,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0a5fa0e3de53444488e88fe9ce77ebee, type: 2}
+  - {fileID: 2100000, guid: 432bfa456457044e1926a80b32cd2f59, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1756,7 +1800,7 @@ Transform:
   m_GameObject: {fileID: 8214021517148399825}
   serializedVersion: 2
   m_LocalRotation: {x: 0.0079412665, y: 0.93628955, z: -0.35050786, w: 0.021051478}
-  m_LocalPosition: {x: -19.112808, y: 207.73294, z: 183.83704}
+  m_LocalPosition: {x: -1511.7394, y: 44655.5, z: 33399.293}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

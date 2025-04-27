@@ -85,6 +85,8 @@ Shader "Custom/CompleteToonShader"
             #pragma fragment frag
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile_fog
 
@@ -110,11 +112,14 @@ Shader "Custom/CompleteToonShader"
             {
                 // Sample base texture
                 float4 baseColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv) * _Color;
-
+    
                 // Get lighting data
                 float3 normalWS = normalize(input.normalWS);
                 float3 viewDirWS = normalize(input.viewDirWS);
-                Light mainLight = GetMainLight(input.shadowCoord);
+                
+                // Get shadow coordinates and main light with shadows
+                float4 shadowCoord = TransformWorldToShadowCoord(input.positionWS);
+                Light mainLight = GetMainLight(shadowCoord);
                 
                 // Calculate diffuse lighting
                 float NdotL = dot(normalWS, mainLight.direction);
@@ -123,9 +128,11 @@ Shader "Custom/CompleteToonShader"
                 // Apply toon ramp
                 float ramp = saturate((diffuse - _RampThreshold) / _RampSmoothing);
                 
-                // Calculate shadows
+                // Calculate shadows - MODIFIED: Increase shadow visibility
                 float shadow = mainLight.shadowAttenuation;
-                float lightIntensity = lerp(1 - _ShadowIntensity, 1.0, ramp * shadow);
+                
+                // MODIFIED: Apply shadow more directly to ensure it's visible
+                float lightIntensity = ramp * shadow;
                 
                 // Calculate specular
                 float3 halfVector = normalize(mainLight.direction + viewDirWS);
@@ -137,11 +144,22 @@ Shader "Custom/CompleteToonShader"
                 float3 lighting = mainLight.color * lightIntensity;
                 float3 specularColor = _SpecularColor.rgb * specular;
                 
-                // Final color calculation
+                // MODIFIED: Apply shadow more directly to the final color
                 float3 finalColor = baseColor.rgb * lighting + specularColor;
                 
                 // Add emission for bloom
                 finalColor += _EmissionColor.rgb * _EmissionIntensity * baseColor.rgb;
+                
+                // Process additional lights (point lights, spot lights, etc.)
+                #ifdef _ADDITIONAL_LIGHTS
+                uint additionalLightsCount = GetAdditionalLightsCount();
+                for (uint lightIndex = 0u; lightIndex < additionalLightsCount; ++lightIndex)
+                {
+                    Light light = GetAdditionalLight(lightIndex, input.positionWS);
+                    float3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
+                    finalColor += attenuatedLightColor * baseColor.rgb;
+                }
+                #endif
                 
                 // Apply fog
                 finalColor = MixFog(finalColor, input.fogCoord);
