@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-
+using Unity.Cinemachine;
 namespace Ashsvp
 {
     public class SimcadeVehicleController : MonoBehaviour
@@ -16,6 +16,12 @@ namespace Ashsvp
         public float springDamper = 200f;
         private float MaxSpringDistance;
         private float[] suspensionForce = new float[4];
+        [Header("Camera Settings")]
+        [Space(10)]
+        public CinemachineCamera cinemachineCamera;
+        public float normalCameraHeight = 1.51f;
+        public float nitroCameraHeight = 0.9f;
+        public float cameraTransitionSpeed = 2.0f;
 
         [Header("Car Stats")]
         [Space(10)]
@@ -125,6 +131,13 @@ namespace Ashsvp
             rearTrack = Vector3.Distance(Wheels[0].position, Wheels[1].position);
 
             GearSystem = GetComponent<GearSystem>();
+            // Find Cinemachine camera if not assigned
+if (cinemachineCamera == null)
+{
+    cinemachineCamera = FindFirstObjectByType<CinemachineCamera>();
+    if (cinemachineCamera == null)
+        Debug.LogWarning("No CinemachineCamera found in scene. Camera effects will not work.");
+}
         }
 
         private void Start()
@@ -156,6 +169,7 @@ namespace Ashsvp
 
             HandleNitroInput();
             RefillNitro();
+            UpdateCameraPosition();
         }
 
         void FixedUpdate()
@@ -207,6 +221,23 @@ namespace Ashsvp
             NumberOfGroundedWheels = 0;
             if (GroundedProperty != vehicleIsGrounded) GroundedProperty = vehicleIsGrounded;
         }
+        void UpdateCameraPosition()
+{
+    if (cinemachineCamera == null) return;
+    
+    var targetOffset = cinemachineCamera.GetComponent<CinemachinePositionComposer>();
+    if (targetOffset == null) return;
+    
+    float targetHeight = isNitroActive ? nitroCameraHeight : normalCameraHeight;
+    Vector3 currentOffset = targetOffset.TargetOffset;
+    Vector3 newOffset = new Vector3(
+        currentOffset.x,
+        Mathf.Lerp(currentOffset.y, targetHeight, Time.deltaTime * cameraTransitionSpeed),
+        currentOffset.z
+    );
+    
+    targetOffset.TargetOffset = newOffset;
+}
 
         void HandleNitroInput()
         {
