@@ -33,6 +33,7 @@ Shader "Custom/CheckpointGlowShader"
         HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
         TEXTURE2D(_MainTex);
         SAMPLER(sampler_MainTex);
@@ -63,6 +64,7 @@ Shader "Custom/CheckpointGlowShader"
             float3 normalWS : TEXCOORD1;
             float3 positionWS : TEXCOORD2;
             float3 viewDirWS : TEXCOORD3;
+            float fogCoord : TEXCOORD4;
         };
         ENDHLSL
 
@@ -75,6 +77,7 @@ Shader "Custom/CheckpointGlowShader"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_fog
 
             Varyings vert(Attributes input)
             {
@@ -88,6 +91,7 @@ Shader "Custom/CheckpointGlowShader"
                 output.normalWS = normalInput.normalWS;
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
                 output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+                output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
 
                 return output;
             }
@@ -121,6 +125,9 @@ Shader "Custom/CheckpointGlowShader"
                 // Increase alpha at the edges for stronger glow effect
                 finalAlpha = max(finalAlpha, edgeGlow * 0.5);
                 
+                // Apply fog to the final color
+                finalColor = MixFog(finalColor, input.fogCoord);
+                
                 return float4(finalColor, finalAlpha);
             }
             ENDHLSL
@@ -135,10 +142,12 @@ Shader "Custom/CheckpointGlowShader"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_fog
 
             struct OutlineVaryings
             {
                 float4 positionCS : SV_POSITION;
+                float fogCoord : TEXCOORD0;
             };
 
             OutlineVaryings vert(Attributes input)
@@ -148,7 +157,9 @@ Shader "Custom/CheckpointGlowShader"
                 float3 normalOS = normalize(input.normalOS);
                 float3 posOS = input.positionOS.xyz + normalOS * _OutlineWidth;
                 
-                output.positionCS = TransformObjectToHClip(posOS);
+                float4 positionCS = TransformObjectToHClip(posOS);
+                output.positionCS = positionCS;
+                output.fogCoord = ComputeFogFactor(positionCS.z);
                 
                 return output;
             }
@@ -158,7 +169,11 @@ Shader "Custom/CheckpointGlowShader"
                 // Pulse the outline color too
                 float pulse = sin(_Time.y * _PulseSpeed) * _PulseAmount + (1.0 - _PulseAmount);
                 float4 outlineColor = _OutlineColor * pulse * _GlowIntensity;
-                return outlineColor;
+                
+                // Apply fog to the outline color
+                float3 foggedColor = MixFog(outlineColor.rgb, input.fogCoord);
+                
+                return float4(foggedColor, outlineColor.a);
             }
             ENDHLSL
         }
