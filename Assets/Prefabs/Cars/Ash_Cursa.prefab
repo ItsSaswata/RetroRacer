@@ -62,6 +62,10 @@ MonoBehaviour:
   inputManager: {fileID: 5997903336310071798}
   springForce: 40000
   springDamper: 3000
+  cinemachineCamera: {fileID: 0}
+  normalCameraHeight: 1.51
+  nitroCameraHeight: 0.9
+  cameraTransitionSpeed: 2
   MaxSpeed: 100
   Acceleration: 30
   AccelerationCurve:
@@ -1799,8 +1803,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8214021517148399825}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.0079412665, y: 0.93628955, z: -0.35050786, w: 0.021051478}
-  m_LocalPosition: {x: -1511.7394, y: 44655.5, z: 33399.293}
+  m_LocalRotation: {x: 0.21399653, y: 0.004521646, z: -0.0009905748, w: 0.9768235}
+  m_LocalPosition: {x: -0.086364746, y: 5.803711, z: -6.0689697}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1826,7 +1830,7 @@ MonoBehaviour:
   m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 3729288735096223668}
+    TrackingTarget: {fileID: 2572221944006564295}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:

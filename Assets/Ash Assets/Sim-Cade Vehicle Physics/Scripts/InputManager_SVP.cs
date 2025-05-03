@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -8,6 +10,12 @@ namespace Ashsvp
 {
     public class InputManager_SVP : MonoBehaviour
     {
+        // AI control flags
+        private bool isAIControlled = false;
+        private float aiSteerInput = 0f;
+        private float aiAccelerationInput = 0f;
+        private float aiHandbrakeInput = 0f;
+        private bool aiNitroInput = false;
         [Serializable]
         public class KeyboardInput
         {
@@ -37,10 +45,31 @@ namespace Ashsvp
         public float AccelerationInput { get; private set; }
         public float HandbrakeInput { get; private set; }
         public bool NitroInput { get; private set; }
+        
+        // Method for AI to set inputs
+        public void SetAIInputs(float steer, float acceleration, float handbrake, bool nitro)
+        {
+            isAIControlled = true;
+            aiSteerInput = steer;
+            aiAccelerationInput = acceleration;
+            aiHandbrakeInput = handbrake;
+            aiNitroInput = nitro;
+        }
 
 
         private void Update()
         {
+            // If AI controlled, use AI inputs
+            if (isAIControlled)
+            {
+                SteerInput = aiSteerInput;
+                AccelerationInput = aiAccelerationInput;
+                HandbrakeInput = aiHandbrakeInput;
+                NitroInput = aiNitroInput;
+                return;
+            }
+            
+            // Otherwise use player inputs
             float tempSteerInput = GetKeyboardSteerInput();
             float tempAccelerationInput = GetKeyboardAccelerationInput();
             float tempHandbrakeInput = GetKeyboardHandbrakeInput();

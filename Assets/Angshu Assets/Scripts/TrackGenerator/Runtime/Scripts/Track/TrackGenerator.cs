@@ -6,12 +6,35 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Track
 {
     [RequireComponent(typeof(SplineContainer), typeof(MeshFilter), typeof(MeshRenderer))]
     public abstract class TrackGenerator : MonoBehaviour
     {
+        [Header("Racing Line Configuration")]
+        [SerializeField, Tooltip("Whether to generate a racing line for AI vehicles")]
+        private bool generateRacingLine = true;
+        
+        [SerializeField, Range(0f, 1f), Tooltip("How aggressively AI should cut corners (0-1)")]
+        private float cornerCuttingFactor = 0.7f;
+        
+        [SerializeField, Tooltip("Show racing line visualization in editor")]
+        private bool showRacingLine = true;
+        
+        [SerializeField, Tooltip("Color of the racing line visualization")]
+        private Color racingLineColor = Color.red;
+        
+        [SerializeField]
+        private List<Vector3> _racingLinePoints = new List<Vector3>();
+        [SerializeField]
+        private List<float> _racingLineSpeeds = new List<float>();
+        
+        private RacingLine _racingLine = new RacingLine();
+        public RacingLine RacingLine => _racingLine;
         // Add new serialized field for checkpoint prefab
         [Header("Checkpoint Configuration")]
         [SerializeField, Tooltip("Checkpoint prefab to place along the track")]
@@ -88,6 +111,14 @@ namespace Track
             {
                 _meshCollider = gameObject.AddComponent<MeshCollider>();
             }
+            
+            // Load racing line data from serialized fields if available
+            if (_racingLinePoints.Count > 0 && _racingLineSpeeds.Count > 0)
+            {
+                _racingLine = new RacingLine();
+                _racingLine.Points.AddRange(_racingLinePoints);
+                _racingLine.RecommendedSpeeds.AddRange(_racingLineSpeeds);
+            }
         }
 
         public void Generate()
@@ -144,7 +175,7 @@ namespace Track
             }
         }
 
-        // Modify existing coroutine to include checkpoints
+        // Modify existing coroutine to include checkpoints and racing line
         public IEnumerator StartRoutines()
         {
             StartCoroutine(GenerateVertices());
@@ -154,6 +185,24 @@ namespace Track
             StartCoroutine(GenerateMesh());
             yield return new WaitForSeconds(0.4f);
             StartCoroutine(GenerateCheckpoints());
+            yield return new WaitForSeconds(0.4f);
+            if (generateRacingLine)
+            {
+                GenerateRacingLine();
+            }
+        }
+        
+        private void GenerateRacingLine()
+        {
+            if (vertices.Count < 3) return;
+            
+            _racingLine.Generate(vertices, Width, Resolution, cornerCuttingFactor);
+            
+            // Save racing line data to serialized fields for prefab saving
+            _racingLinePoints.Clear();
+            _racingLineSpeeds.Clear();
+            _racingLinePoints.AddRange(_racingLine.Points);
+            _racingLineSpeeds.AddRange(_racingLine.RecommendedSpeeds);
         }
 
         protected abstract Path GetPath();
@@ -352,6 +401,32 @@ namespace Track
 
                 // Randomly shift line length for "scanning" effect
                 _debugLineLength = 1.5f + Mathf.Sin(Time.time) * 0.5f;
+            }
+            
+            // Draw racing line in editor
+            if (showRacingLine && _racingLine != null && _racingLine.Points.Count > 1)
+            {
+                for (int i = 0; i < _racingLine.Points.Count - 1; i++)
+                {
+                    Vector3 start = transform.TransformPoint(_racingLine.Points[i]);
+                    Vector3 end = transform.TransformPoint(_racingLine.Points[i + 1]);
+                    Debug.DrawLine(start, end, racingLineColor);
+                    
+                    // Draw speed indicators
+                    float speed = _racingLine.RecommendedSpeeds[i];
+                    Color speedColor = Color.Lerp(Color.red, Color.green, speed);
+                    Debug.DrawLine(start, start + Vector3.up * speed * 2f, speedColor);
+                }
+                
+                // Connect last point to first point
+                if (_racingLine.Points.Count > 0)
+                {
+                    Debug.DrawLine(
+                        transform.TransformPoint(_racingLine.Points[_racingLine.Points.Count - 1]),
+                        transform.TransformPoint(_racingLine.Points[0]),
+                        racingLineColor
+                    );
+                }
             }
         }
 
