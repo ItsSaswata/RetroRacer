@@ -1,0 +1,55 @@
+<svg width="2048" height="1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Base color (reddish-orange) -->
+  <rect width="2048" height="1024" fill="#c1440e"/>
+  
+  <!-- Surface features -->
+  <!-- Darker regions (maria) -->
+  <ellipse cx="600" cy="400" rx="300" ry="200" fill="#8c3208" fill-opacity="0.7"/>
+  <ellipse cx="1400" cy="600" rx="350" ry="250" fill="#8c3208" fill-opacity="0.6"/>
+  <ellipse cx="1000" cy="300" rx="200" ry="150" fill="#8c3208" fill-opacity="0.5"/>
+  
+  <!-- Lighter regions (highlands) -->
+  <ellipse cx="800" cy="500" rx="250" ry="180" fill="#e06c3c" fill-opacity="0.6"/>
+  <ellipse cx="1600" cy="400" rx="200" ry="150" fill="#e06c3c" fill-opacity="0.5"/>
+  <ellipse cx="400" cy="600" rx="180" ry="120" fill="#e06c3c" fill-opacity="0.7"/>
+  
+  <!-- Olympus Mons (largest volcano) -->
+  <circle cx="1200" cy="500" r="100" fill="#8c3208"/>
+  <circle cx="1200" cy="500" r="80" fill="#a03a0a"/>
+  <circle cx="1200" cy="500" r="60" fill="#b44212"/>
+  <circle cx="1200" cy="500" r="40" fill="#c1440e"/>
+  <circle cx="1200" cy="500" r="20" fill="#d4562a"/>
+  
+  <!-- Valles Marineris (canyon system) -->
+  <path d="M600 550 Q 900 450, 1200 500 T 1800 450" stroke="#8c3208" stroke-width="40" fill="none"/>
+  <path d="M650 570 Q 920 470, 1200 520 T 1750 470" stroke="#6b2406" stroke-width="20" fill="none"/>
+  
+  <!-- Polar ice caps -->
+  <ellipse cx="1024" cy="100" rx="400" ry="80" fill="#ffffff" fill-opacity="0.8"/>
+  <ellipse cx="1024" cy="924" rx="400" ry="80" fill="#ffffff" fill-opacity="0.8"/>
+  
+  <!-- Dust storm patterns -->
+  <path d="M200 300 Q 400 250, 600 300 T 1000 250" stroke="#e06c3c" stroke-width="30" fill="none" opacity="0.3"/>
+  <path d="M1400 700 Q 1600 650, 1800 700 T 2000 650" stroke="#e06c3c" stroke-width="25" fill="none" opacity="0.3"/>
+  
+  <!-- Surface texture overlay -->
+  <filter id="noise" x="0%" y="0%" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="4" result="noise"/>
+    <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.1 0" in="noise" result="coloredNoise"/>
+    <feComposite operator="in" in="coloredNoise" in2="SourceGraphic" result="noisyImage"/>
+  </filter>
+  
+  <rect width="2048" height="1024" fill="none" filter="url(#noise)"/>
+  
+  <!-- Subtle atmospheric haze -->
+  <rect width="2048" height="1024" fill="url(#atmosphereGradient)" fill-opacity="0.2"/>
+  
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="atmosphereGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0a080;stop-opacity:0.5"/>
+      <stop offset="50%" style="stop-color:#f0a080;stop-opacity:0"/>
+      <stop offset="100%" style="stop-color:#f0a080;stop-opacity:0.5"/>
+    </linearGradient>
+  </defs>
+</svg>

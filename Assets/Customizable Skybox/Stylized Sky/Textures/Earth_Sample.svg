@@ -1,0 +1,41 @@
+<svg width="2048" height="1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background (ocean) -->
+  <rect width="2048" height="1024" fill="#1a4d80"/>
+  
+  <!-- Continents -->
+  <!-- Africa and Europe -->
+  <path d="M1024 256 L1200 200 L1300 300 L1250 500 L1100 600 L1000 550 L950 450 L1024 256" fill="#4d8000"/>
+  <!-- North America -->
+  <path d="M600 200 L800 180 L900 300 L850 450 L700 500 L550 400 L600 200" fill="#4d8000"/>
+  <!-- South America -->
+  <path d="M750 550 L850 500 L900 650 L850 800 L750 850 L700 750 L750 550" fill="#4d8000"/>
+  <!-- Asia -->
+  <path d="M1300 200 L1600 150 L1700 300 L1650 450 L1500 500 L1350 450 L1300 200" fill="#4d8000"/>
+  <!-- Australia -->
+  <path d="M1600 650 L1750 600 L1800 700 L1750 800 L1600 750 L1600 650" fill="#4d8000"/>
+  <!-- Antarctica -->
+  <path d="M800 900 L1400 900 L1350 950 L850 950 L800 900" fill="#e0e0e0"/>
+  
+  <!-- Cloud patterns -->
+  <ellipse cx="400" cy="300" rx="100" ry="50" fill="#ffffff" fill-opacity="0.5"/>
+  <ellipse cx="1200" cy="400" rx="150" ry="70" fill="#ffffff" fill-opacity="0.5"/>
+  <ellipse cx="1600" cy="200" rx="120" ry="60" fill="#ffffff" fill-opacity="0.5"/>
+  <ellipse cx="800" cy="700" rx="130" ry="50" fill="#ffffff" fill-opacity="0.5"/>
+  <ellipse cx="300" cy="500" rx="80" ry="40" fill="#ffffff" fill-opacity="0.5"/>
+  
+  <!-- Polar ice caps -->
+  <path d="M0 0 L2048 0 L2048 100 L0 100 L0 0" fill="#e0e0e0" fill-opacity="0.8"/>
+  <path d="M0 924 L2048 924 L2048 1024 L0 1024 L0 924" fill="#e0e0e0" fill-opacity="0.8"/>
+  
+  <!-- Atmospheric glow at edges (vertical gradient) -->
+  <rect width="2048" height="1024" fill="url(#atmosphereGradient)" fill-opacity="0.3"/>
+  
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="atmosphereGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#a0d8ff;stop-opacity:0.7"/>
+      <stop offset="50%" style="stop-color:#a0d8ff;stop-opacity:0"/>
+      <stop offset="100%" style="stop-color:#a0d8ff;stop-opacity:0.7"/>
+    </linearGradient>
+  </defs>
+</svg>
