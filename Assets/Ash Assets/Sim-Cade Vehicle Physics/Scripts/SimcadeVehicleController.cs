@@ -19,9 +19,11 @@ namespace Ashsvp
         [Header("Camera Settings")]
         [Space(10)]
         public CinemachineCamera cinemachineCamera;
+        public CinemachineCamera alternativeCamera;
         public float normalCameraHeight = 1.51f;
         public float nitroCameraHeight = 0.9f;
         public float cameraTransitionSpeed = 2.0f;
+        private bool isUsingAlternativeCamera = false;
 
         [Header("Car Stats")]
         [Space(10)]
@@ -170,6 +172,7 @@ if (cinemachineCamera == null)
             HandleNitroInput();
             RefillNitro();
             UpdateCameraPosition();
+            HandleCameraSwitch();
         }
 
         void FixedUpdate()
@@ -237,6 +240,22 @@ if (cinemachineCamera == null)
     );
     
     targetOffset.TargetOffset = newOffset;
+}
+
+void HandleCameraSwitch()
+{
+    if (inputManager.CameraSwitchInput && !isUsingAlternativeCamera && alternativeCamera != null)
+    {
+        cinemachineCamera.Priority = 0;
+        alternativeCamera.Priority = 10;
+        isUsingAlternativeCamera = true;
+    }
+    else if (!inputManager.CameraSwitchInput && isUsingAlternativeCamera)
+    {
+        cinemachineCamera.Priority = 10;
+        alternativeCamera.Priority = 0;
+        isUsingAlternativeCamera = false;
+    }
 }
 
         void HandleNitroInput()

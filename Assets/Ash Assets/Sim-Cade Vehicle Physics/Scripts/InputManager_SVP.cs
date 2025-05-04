@@ -24,6 +24,7 @@ namespace Ashsvp
             public KeyCode accelerate = KeyCode.W;
             public KeyCode decelerate = KeyCode.S;
             public KeyCode handBrake = KeyCode.Space;
+            public KeyCode cameraSwitch = KeyCode.C;
         }
 
         public KeyboardInput keyboardInput = new KeyboardInput();
@@ -36,6 +37,7 @@ namespace Ashsvp
             public UiButton_SVP accelerate;
             public UiButton_SVP decelerate;
             public UiButton_SVP handBrake;
+            public UiButton_SVP cameraSwitch;
         }
 
         public bool useMobileInput = false;
@@ -45,6 +47,8 @@ namespace Ashsvp
         public float AccelerationInput { get; private set; }
         public float HandbrakeInput { get; private set; }
         public bool NitroInput { get; private set; }
+        public bool CameraSwitchInput { get; private set; }
+        
         
         // Method for AI to set inputs
         public void SetAIInputs(float steer, float acceleration, float handbrake, bool nitro)
@@ -88,6 +92,7 @@ namespace Ashsvp
                 : Mathf.Lerp(SteerInput, tempSteerInput, 25 * Time.deltaTime);
             HandbrakeInput = tempHandbrakeInput;
             NitroInput = Input.GetKey(KeyCode.LeftShift);
+            CameraSwitchInput = useMobileInput ? mobileInput.cameraSwitch.isPressed : Input.GetKey(keyboardInput.cameraSwitch);
         }
 
         private float GetKeyboardSteerInput()

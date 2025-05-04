@@ -13,7 +13,6 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
-  - _ENABLEPLANETS_ON
   - _ENABLESTARS_ON
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 0
@@ -53,7 +52,7 @@ Material:
     m_Floats:
     - _EarthRotationSpeed: 0.037
     - _EarthSize: 0.01
-    - _EnablePlanets: 1
+    - _EnablePlanets: 0
     - _EnableStars: 1
     - _HorizonLineContribution: 0.84
     - _HorizonLineExponent: 5.24
