@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 218209589}
   - component: {fileID: 218209588}
   - component: {fileID: 218209587}
-  - component: {fileID: 218209586}
+  - component: {fileID: 218209590}
   m_Layer: 0
   m_Name: CinemachineCamera
   m_TagString: Untagged
@@ -138,35 +138,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &218209586
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 218209585}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f38bda98361e1de48a4ca2bd86ea3c17, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Composition:
-    ScreenPosition: {x: 0, y: 0}
-    DeadZone:
-      Enabled: 0
-      Size: {x: 0.2, y: 0.2}
-    HardLimits:
-      Enabled: 0
-      Size: {x: 0.8, y: 0.8}
-      Offset: {x: 0, y: 0}
-  CenterOnActivate: 1
-  TargetOffset: {x: 0, y: 0, z: 0}
-  Damping: {x: 0.5, y: 0.5}
-  Lookahead:
-    Enabled: 0
-    Time: 0
-    Smoothing: 0
-    IgnoreY: 0
 --- !u!114 &218209587
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -184,7 +155,7 @@ MonoBehaviour:
     Position: 2.81
     Units: 2
   SplineOffset: {x: 0, y: 0, z: 0}
-  CameraRotation: 0
+  CameraRotation: 3
   Damping:
     Enabled: 0
     Position: {x: 0, y: 0, z: 0}
@@ -254,13 +225,37 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 218209585}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.01336139, y: -0.67305887, z: 0.012163092, w: 0.73936826}
+  m_LocalRotation: {x: 0.013361393, y: -0.67305887, z: 0.012163092, w: 0.73936826}
   m_LocalPosition: {x: 656.16724, y: 19.949173, z: -378.61508}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &218209590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 218209585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28e2023ac4c6b204e9bad440d2cea142, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Targets:
+    m_IndexUnit: 2
+    m_DefaultValue:
+      LookAt: {fileID: 0}
+      Offset: {x: 0, y: 0, z: 0}
+      Easing: 1
+    m_DataPoints:
+    - m_Index: 0
+      m_Value:
+        LookAt: {fileID: 2815978394799916950}
+        Offset: {x: 0, y: 0, z: 0}
+        Easing: 1
 --- !u!1 &526287757
 GameObject:
   m_ObjectHideFlags: 0
@@ -570,7 +565,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 743049235}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.01336139, y: -0.67305887, z: 0.01216309, w: 0.73936826}
+  m_LocalRotation: {x: 0.013361393, y: -0.67305887, z: 0.012163092, w: 0.73936826}
   m_LocalPosition: {x: 656.16724, y: 19.949173, z: -378.61508}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
