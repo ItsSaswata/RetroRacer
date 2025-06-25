@@ -397,7 +397,7 @@ MonoBehaviour:
   - {fileID: 5133139713709978575, guid: 045ea7d5027d0b8468164902ce8cf621, type: 3}
   - {fileID: 1442448109624292080, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
   - {fileID: 5732929322218367154, guid: 57d987d5ad4d1e1418480394f89b0e87, type: 3}
-  numberOfAIRacers: 2
+  numberOfAIRacers: 5
   startingOffset: 2
   minSkillLevel: 0.5
   maxSkillLevel: 0.9
@@ -678,6 +678,10 @@ PrefabInstance:
     - target: {fileID: 3423248311518797763, guid: a23bb5f9eb4dd453dbf58338ad08a4fa, type: 3}
       propertyPath: m_TagString
       value: Checkpoint
+      objectReference: {fileID: 0}
+    - target: {fileID: 4266595018055434395, guid: a23bb5f9eb4dd453dbf58338ad08a4fa, type: 3}
+      propertyPath: m_Splines.Array.data[0].m_MetaData.Array.size
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 4275639781976871523, guid: a23bb5f9eb4dd453dbf58338ad08a4fa, type: 3}
       propertyPath: m_TagString
