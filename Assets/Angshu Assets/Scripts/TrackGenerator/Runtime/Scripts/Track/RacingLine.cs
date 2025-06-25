@@ -32,10 +32,10 @@ namespace Track
                 Debug.LogWarning("Racing Line generation failed: Spline is invalid.");
                 return;
             }
-
+                
             _racingLinePoints.Clear();
             _recommendedSpeeds.Clear();
-
+            
             float perlinSeed = UnityEngine.Random.Range(0f, 1000f);
             
             // Step 1: Generate points by sampling the spline and adding natural deviation.
@@ -47,7 +47,7 @@ namespace Track
                 Vector3 pointOnSpline = spline.EvaluatePosition(t);
                 Vector3 tangent = math.normalize(spline.EvaluateTangent(t));
                 Vector3 normal = Vector3.Cross(tangent, Vector3.up).normalized;
-
+                
                 // --- NEW: Calculate curvature to vary the deviation ---
                 float lookbehind = Mathf.Clamp01(t - 0.02f);
                 float lookahead = Mathf.Clamp01(t + 0.02f);
@@ -58,13 +58,13 @@ namespace Track
                 float angle = Vector3.Angle(tangentBehind, tangentAhead);
                 // Normalize curvature, clamping at 45 degrees as a "very sharp" turn
                 float normalizedCurvature = Mathf.InverseLerp(0f, 45f, angle);
-
+                
                 // Determine current deviation factor based on curvature
                 float currentDeviationFactor = Mathf.Lerp(minDeviationFactor, maxDeviationFactor, normalizedCurvature);
-
+                
                 // Perlin noise creates a smooth, random value between -1 and 1
                 float noise = (Mathf.PerlinNoise(t * deviationScale, perlinSeed) * 2f) - 1f;
-
+                
                 // Calculate the maximum possible deviation from the center line
                 float maxDeviation = trackWidth * 0.45f * currentDeviationFactor;
 
@@ -91,29 +91,29 @@ namespace Track
                     Vector3 p4 = rawPoints[(i + 2) % rawPoints.Count];
 
                     Vector3 smoothedPoint = p0 * 0.1f + p1 * 0.2f + p2 * 0.4f + p3 * 0.2f + p4 * 0.1f;
-                    _racingLinePoints.Add(smoothedPoint);
-                }
+                _racingLinePoints.Add(smoothedPoint);
+            }
                 // Use the smoothed points as input for the next pass.
                 rawPoints = new List<Vector3>(_racingLinePoints);
             }
-
+            
             // Step 2: Recalculate recommended speeds based on the final line's curvature.
             _recommendedSpeeds.Clear();
-
+            
             for (int i = 0; i < _racingLinePoints.Count; i++)
             {
                 int prevIndex = (i - 1 + _racingLinePoints.Count) % _racingLinePoints.Count;
                 int nextIndex = (i + 1) % _racingLinePoints.Count;
-
+                
                 Vector3 toPrev = (_racingLinePoints[prevIndex] - _racingLinePoints[i]).normalized;
                 Vector3 toNext = (_racingLinePoints[nextIndex] - _racingLinePoints[i]).normalized;
-
+                
                 // Curvature is calculated from the angle between segments.
                 float curvature = 1.0f - (Vector3.Dot(toPrev, toNext) + 1.0f) / 2.0f;
-
+                
                 // Recommended speed is inversely related to curvature.
                 float speedFactor = Mathf.Lerp(0.3f, 1.0f, Mathf.Pow(1.0f - curvature, 0.7f));
-
+                
                 // Smooth speed transitions between points.
                 if (i > 0)
                 {
@@ -121,24 +121,24 @@ namespace Track
                     float maxChange = 0.1f; // Max speed change between adjacent points
                     speedFactor = Mathf.Clamp(speedFactor, prevSpeed - maxChange, prevSpeed + maxChange);
                 }
-
+                
                 _recommendedSpeeds.Add(speedFactor);
             }
-
+            
             // Step 3: Apply a final smoothing pass to the speed profile.
             List<float> smoothedSpeeds = new List<float>(_recommendedSpeeds);
             _recommendedSpeeds.Clear();
-
+            
             for (int i = 0; i < smoothedSpeeds.Count; i++)
             {
                 int prev = (i - 1 + smoothedSpeeds.Count) % smoothedSpeeds.Count;
                 int next = (i + 1) % smoothedSpeeds.Count;
-
+                
                 // Weighted average for smoother speed transitions
-                float smoothedSpeed = smoothedSpeeds[prev] * 0.25f +
-                                     smoothedSpeeds[i] * 0.5f +
+                float smoothedSpeed = smoothedSpeeds[prev] * 0.25f + 
+                                     smoothedSpeeds[i] * 0.5f + 
                                      smoothedSpeeds[next] * 0.25f;
-
+                
                 _recommendedSpeeds.Add(smoothedSpeed);
             }
         }

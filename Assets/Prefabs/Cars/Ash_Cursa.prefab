@@ -19,9 +19,9 @@ GameObject:
   - component: {fileID: 5997903336310071798}
   - component: {fileID: 4607397642088027542}
   - component: {fileID: 2774837535150902014}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Ash_Cursa
-  m_TagString: Untagged
+  m_TagString: Car
   m_Icon: {fileID: 7148428337604731935, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -63,11 +63,12 @@ MonoBehaviour:
   springForce: 40000
   springDamper: 3000
   cinemachineCamera: {fileID: 0}
+  alternativeCamera: {fileID: 0}
   normalCameraHeight: 1.51
   nitroCameraHeight: 0.9
   cameraTransitionSpeed: 2
-  MaxSpeed: 100
-  Acceleration: 30
+  MaxSpeed: 103
+  Acceleration: 28
   AccelerationCurve:
     serializedVersion: 2
     m_Curve:
@@ -125,7 +126,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  MaxTurnAngle: 30
+  MaxTurnAngle: 29
   turnCurve:
     serializedVersion: 2
     m_Curve:
@@ -150,9 +151,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  brakeAcceleration: 5
+  brakeAcceleration: 10
   RollingResistance: 2
-  driftFactor: 0.2
+  driftFactor: 1
   maxDriftAngle: 60
   FrictionCoefficient: 1
   slopeSlideAngle: 30
@@ -205,7 +206,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   CenterOfMass_air: {fileID: 824704975650886202}
-  AutoCounterSteer: 0
+  AutoCounterSteer: 1
   DownForce: 5
   airAngularDrag: 0.2
   nitroAccelerationMultiplier: 2
@@ -287,10 +288,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 321616085496138627}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 1000
-  m_Drag: 0.1
-  m_AngularDrag: 1
+  m_LinearDamping: 0.1
+  m_AngularDamping: 1
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -532,6 +533,10 @@ MonoBehaviour:
   VehicleSpeed: 0
   currentGear: 0
   gearSpeeds: 280000005000000078000000a0000000dc000000
+  maxShakeSpeed: 200
+  maxShakeAmplitude: 1.2
+  baseFrequency: 1
+  shakeStartSpeed: 60
   virtualCamera: {fileID: 0}
   fovCurve:
     serializedVersion: 2
@@ -590,6 +595,7 @@ MonoBehaviour:
     accelerate: 119
     decelerate: 115
     handBrake: 32
+    cameraSwitch: 99
   useMobileInput: 0
   mobileInput:
     steerLeft: {fileID: 0}
@@ -597,6 +603,7 @@ MonoBehaviour:
     accelerate: {fileID: 0}
     decelerate: {fileID: 0}
     handBrake: {fileID: 0}
+    cameraSwitch: {fileID: 0}
 --- !u!114 &4607397642088027542
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -639,7 +646,7 @@ GameObject:
   - component: {fileID: 4586608687116636266}
   - component: {fileID: 4494052893664977198}
   - component: {fileID: 5790458125499728157}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FrontLeftWheel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -723,7 +730,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1604984434509861853}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: wheel RL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -757,7 +764,7 @@ GameObject:
   - component: {fileID: 3079050563376496639}
   - component: {fileID: 8349172572049208554}
   - component: {fileID: 1210253303949005142}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -842,7 +849,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4285349664380601471}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: wheel RR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -874,7 +881,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7654645279344100630}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HardPoints
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -909,7 +916,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5488916737042602817}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: wheel FR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -941,7 +948,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2046154415208410611}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: wheel mesh RL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -973,7 +980,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8302402056264198766}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HardPoint RL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1004,7 +1011,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3326401355937760537}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HardPoint RR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1035,7 +1042,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7987650768870543349}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: wheel mesh FL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1067,7 +1074,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6124419444456439150}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Body Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1101,7 +1108,7 @@ GameObject:
   - component: {fileID: 8592672121307064148}
   - component: {fileID: 1841888419833183647}
   - component: {fileID: 6436712282158486926}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Vinyls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1185,7 +1192,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6448766916916179028}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cursa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1219,7 +1226,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1767921900071662333}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HardPoint FR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1250,7 +1257,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 317065699901439837}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Wheels
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1285,7 +1292,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 824704975650886202}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Center Of Mass_Air
   m_TagString: Untagged
   m_Icon: {fileID: 4422084297763085224, guid: 0000000000000000d000000000000000, type: 0}
@@ -1316,7 +1323,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9218761762102768036}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HardPoint FL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1347,7 +1354,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2560134375860175485}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Wheels
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1381,7 +1388,7 @@ GameObject:
   - component: {fileID: 8102729059791414870}
   - component: {fileID: 5975678791685815303}
   - component: {fileID: 3691316122488637651}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FrontRightWheel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1467,7 +1474,7 @@ GameObject:
   - component: {fileID: 5183356782765551923}
   - component: {fileID: 5578060615676882538}
   - component: {fileID: 5550379749483748291}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: RearLeftWheel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1551,7 +1558,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5711130927655619883}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: wheel mesh FR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1584,7 +1591,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5566513208226781673}
   - component: {fileID: 5955996707525811446}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Body Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1638,7 +1645,7 @@ GameObject:
   - component: {fileID: 1587825247789809140}
   - component: {fileID: 5037085332871936453}
   - component: {fileID: 8055784560572248752}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: RearRightWheel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1722,7 +1729,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5235352280033598846}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: wheel mesh RR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1754,7 +1761,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7407331262994070599}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Meshes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1788,7 +1795,7 @@ GameObject:
   - component: {fileID: 1274979122010049798}
   - component: {fileID: 2614908477894884674}
   - component: {fileID: 2103163483527578709}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: CarCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1803,8 +1810,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8214021517148399825}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.21399653, y: 0.004521646, z: -0.0009905748, w: 0.9768235}
-  m_LocalPosition: {x: -0.086364746, y: 5.803711, z: -6.0689697}
+  m_LocalRotation: {x: 0.076993324, y: 0.00000535468, z: -0.00000041350197, w: 0.9970317}
+  m_LocalPosition: {x: -0.00010681152, y: 3.0867538, z: -6.888214}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1922,7 +1929,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 586287248155021419}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: wheel FL
   m_TagString: Untagged
   m_Icon: {fileID: 0}

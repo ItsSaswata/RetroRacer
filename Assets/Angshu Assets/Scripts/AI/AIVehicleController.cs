@@ -35,11 +35,10 @@ public class AIVehicleController : MonoBehaviour
     [SerializeField, Range(0f, 1f), Tooltip("Minimum recommended speed threshold for using nitro. Higher values mean nitro is only used on longer straights")]
     private float nitroThreshold = 0.85f;
     
-    [SerializeField, Range(0f, 1f), Tooltip("How strongly the AI avoids other vehicles. Higher values cause more aggressive avoidance maneuvers")]
-    private float avoidanceStrength = 0.4f;
+  
     
-    [SerializeField, Range(1f, 10f), Tooltip("Maximum distance at which the AI will start avoiding other vehicles. Higher values make the AI start avoiding earlier")]
-    private float avoidanceDistance = 4f;
+    [SerializeField, Tooltip("Layer mask for sensor raycasts (should include the layer that cars are on)")]
+    private LayerMask carDetectionLayerMask = -1;
     
     [Header("Corner Handling")]
     [SerializeField, Range(5, 30), Tooltip("How many points ahead the AI looks to detect corners. Higher values allow earlier corner detection")]
@@ -57,8 +56,7 @@ public class AIVehicleController : MonoBehaviour
     [SerializeField, Range(0.1f, 5f), Tooltip("Multiplier for braking intensity. Higher values make the AI brake more aggressively")]
     private float brakingIntensityMultiplier = 1.8f;
     
-    [SerializeField, Range(0.1f, 1f), Tooltip("Corner factor threshold at which the AI will start using handbrake. Higher values mean handbrake is used only in sharper corners")]
-    private float handbrakeThreshold = 0.25f;
+
     
     // Difficulty settings
     [Header("Difficulty Settings")]
@@ -79,6 +77,28 @@ public class AIVehicleController : MonoBehaviour
     [SerializeField, Tooltip("Color used for visualizing the racing line path ahead")]
     private Color pathColor = Color.yellow;
     
+    [Header("Humanization")]
+    [SerializeField, Range(0f, 5f), Tooltip("How far (in meters) the AI can randomly deviate from the racing line.")]
+    private float pathRandomness = 3.5f;
+
+    [SerializeField, Range(0.1f, 5f), Tooltip("How quickly the AI's random path deviation changes over time.")]
+    private float randomnessChangeRate = 0.2f;
+     
+    [Header("Overtaking")]
+    [SerializeField, Tooltip("How long to be stuck behind a car before attempting to overtake.")]
+    private float overtakeTriggerTime = 2.0f;
+    [SerializeField, Tooltip("How far to the side to move when overtaking.")]
+    private float overtakeLaneOffset = 3.0f;
+    [SerializeField, Tooltip("The maximum corner sharpness where an overtake is allowed.")]
+    private float maxOvertakeCornerFactor = 0.2f;
+    [SerializeField, Tooltip("Time to wait after completing an overtake before starting another.")]
+    private float overtakeCooldown = 3.0f;
+    
+    // Public properties for external management
+    public bool IsRacing { get; set; } = false;
+    public float RaceProgress { get; private set; }
+    public float RubberBandingFactor { get; set; } = 1f;
+    
     // Private variables
     private SimcadeVehicleController vehicleController;
     private RacingLine racingLine;
@@ -89,6 +109,33 @@ public class AIVehicleController : MonoBehaviour
     private float currentHandbrake = 0f;
     private bool isUsingNitro = false;
     private List<AIVehicleController> otherVehicles = new List<AIVehicleController>();
+    private float perlinSeed;
+    private bool isOvertaking = false;
+    private float timeStuck = 0f;
+    private float overtakeCooldownTimer = 0f;
+    private float targetOvertakeOffset = 0f;
+    private float currentOvertakeOffset = 0f;
+    private AIVehicleController carToOvertake = null;
+    private float originalAcceleration;
+    
+    // Avoidance system state
+    private float committedAvoidanceOffset = 0f;
+    private float avoidanceCommitmentTimer = 0f;
+    private float avoidanceCommitmentDuration = 1.5f;
+    private float lastAvoidanceDecisionTime = 0f;
+    private const float avoidanceDetectionRadius = 10f;
+    private const float avoidanceAwarenessAngle = 120f; // degrees
+    
+    // Defensive driving state
+    private bool isDefending = false;
+    private float defenseTimer = 0f;
+    private float defenseDuration = 0f;
+    // Handbrake parameters (randomized per car)
+    private float handbrakeStrength;
+    private float handbrakeThresholdRandomized;
+    
+    [SerializeField]
+    private bool isDrifty = false;
     
     private void Awake()
     {
@@ -130,6 +177,26 @@ public class AIVehicleController : MonoBehaviour
         {
             vehicleController.inputManager.enabled = true;
         }
+
+        // Initialize a random seed for this vehicle to make its behavior unique
+        perlinSeed = Random.Range(0f, 1000f);
+        // Store the original acceleration value from the vehicle controller
+        originalAcceleration = vehicleController.Acceleration;
+
+        // Drifty/non-drifty switch
+        if (isDrifty)
+        {
+            handbrakeStrength = Random.Range(2.5f, 3.5f);
+            handbrakeThresholdRandomized = Random.Range(0.08f, 0.14f);
+            vehicleController.driftFactor = -0.15f;
+        }
+        else
+        {
+            handbrakeStrength = Random.Range(1.0f, 1.5f);
+            handbrakeThresholdRandomized = Random.Range(0.18f, 0.25f);
+            vehicleController.driftFactor = 0.15f;
+        }
+        Debug.Log($"[AI] {gameObject.name} isDrifty={isDrifty}, handbrakeStrength={handbrakeStrength:F2}, handbrakeThreshold={handbrakeThresholdRandomized:F2}, driftFactor={vehicleController.driftFactor:F2}");
     }
     
     private void Start()
@@ -147,83 +214,112 @@ public class AIVehicleController : MonoBehaviour
             // Set initial AI inputs
             vehicleController.inputManager.SetAIInputs(0f, 0f, 0f, false);
         }
+        
+        // Refresh the list of other vehicles after a short delay to ensure all cars are spawned
+        StartCoroutine(RefreshOtherVehiclesAfterDelay());
+    }
+    
+    private IEnumerator RefreshOtherVehiclesAfterDelay()
+    {
+        yield return new WaitForSeconds(3f); // Wait 3 seconds for all cars to spawn
+        RefreshOtherVehicles();
+    }
+    
+    private void RefreshOtherVehicles()
+    {
+        otherVehicles.Clear();
+        AIVehicleController[] allVehicles = FindObjectsByType<AIVehicleController>(FindObjectsSortMode.None);
+        foreach (var vehicle in allVehicles)
+        {
+            if (vehicle != this && vehicle != null)
+            {
+                otherVehicles.Add(vehicle);
+            }
+        }
     }
     
     private void Update()
     {
+        if (!IsRacing)
+        {
+            // Before the race starts, keep the handbrake on to stay stationary.
+            if(vehicleController.inputManager != null)
+            {
+                vehicleController.inputManager.SetAIInputs(0f, 0f, 1f, false);
+            }
+            return;
+        }
+
         if (racingLine == null || racingLine.Points.Count == 0) return;
         
-        // Get current position in local space of track
+        // --- 1. Find our position and progress on the racing line ---
         Vector3 localPosition = trackGenerator.transform.InverseTransformPoint(transform.position);
-        
-        // Find closest point on racing line
         (currentWaypointIndex, _, _) = racingLine.GetClosestPoint(localPosition);
         
-        // Get target point ahead on racing line
+        if (racingLine.Points.Count > 0)
+        {
+            int nextWaypointIndex = (currentWaypointIndex + 1) % racingLine.Points.Count;
+            float distanceToNext = Vector3.Distance(localPosition, racingLine.Points[nextWaypointIndex]);
+            float segmentLength = Vector3.Distance(racingLine.Points[currentWaypointIndex], racingLine.Points[nextWaypointIndex]);
+            
+            float progressBetweenWaypoints = (segmentLength > 0) ? Mathf.Clamp01(1f - (distanceToNext / segmentLength)) : 0f;
+            RaceProgress = (currentWaypointIndex + progressBetweenWaypoints) / racingLine.Points.Count;
+        }
+
+        // --- 2. Determine our ideal state (target point and speed) ---
         int adjustedLookahead = Mathf.RoundToInt(lookaheadPoints * (1f + skillLevel));
         (Vector3 targetPoint, float recommendedSpeed) = racingLine.GetNextTargetPoint(currentWaypointIndex, adjustedLookahead);
-        
-        // Convert target point to world space
-        Vector3 worldTargetPoint = trackGenerator.transform.TransformPoint(targetPoint);
-        
-        // Calculate steering direction
-        Vector3 directionToTarget = worldTargetPoint - transform.position;
-        Vector3 localDirection = transform.InverseTransformDirection(directionToTarget);
-        float targetSteer = Mathf.Clamp(localDirection.x / localDirection.magnitude, -maxSteeringAngle, maxSteeringAngle);
-        
-        // Apply skill level to steering precision
-        targetSteer *= Mathf.Lerp(1.5f, 1.0f, skillLevel); // Less skilled drivers oversteer
-        
-        // Adjust for other vehicles (collision avoidance)
-        Vector3 avoidanceVector = CalculateAvoidanceVector();
-        Vector3 localAvoidance = transform.InverseTransformDirection(avoidanceVector);
-        targetSteer += localAvoidance.x * avoidanceStrength;
-        
-        // Smooth steering
-        currentSteer = Mathf.Lerp(currentSteer, targetSteer, Time.deltaTime * steeringSpeed * (1f + skillLevel));
-        
-        // Detect upcoming corners by analyzing multiple points ahead
         float cornerFactor = DetectUpcomingCorners();
         
-        // Add debug log to monitor corner detection
-        if (cornerFactor > 0.1f && showDebugInfo)
-        {
-            Debug.Log($"Car {gameObject.name}: Detected corner with factor {cornerFactor:F2}");
-        }
-        
-        // Calculate target speed based on recommended speed from racing line
-        float targetSpeed = recommendedSpeed;
-        
-        // Apply corner speed reduction if approaching a sharp turn - more aggressive reduction
+        float idealTargetSpeed = recommendedSpeed;
         if (cornerFactor > 0)
         {
-            // Reduce speed based on corner sharpness - more aggressive curve
-            float cornerSpeedReduction = Mathf.Lerp(1.0f, cornerSpeedReductionFactor, Mathf.Pow(cornerFactor, 0.7f));
-            targetSpeed *= cornerSpeedReduction;
-            
-            // Add debug visualization for target speed reduction
-            if (showDebugInfo)
-            {
-                Debug.DrawRay(transform.position + Vector3.up * 5f, Vector3.right * cornerSpeedReduction * 3f, Color.magenta);
-            }
+            idealTargetSpeed *= Mathf.Lerp(1.0f, cornerSpeedReductionFactor, Mathf.Pow(cornerFactor, 0.7f));
+        }
+        idealTargetSpeed *= Mathf.Lerp(minSpeedMultiplier, maxSpeedMultiplier, skillLevel);
+        idealTargetSpeed *= (1f + aggressiveness * 0.2f);
+
+        // --- 3. Check for overtaking and apply lateral offsets ---
+        UpdateOvertakingLogic(idealTargetSpeed);
+        currentOvertakeOffset = Mathf.Lerp(currentOvertakeOffset, targetOvertakeOffset, Time.deltaTime * 2f);
+
+        // --- NEW: Dynamic Avoidance System ---
+        float avoidanceOffset = CalculateDynamicAvoidanceOffset();
+        // Commitment logic: only change direction every X seconds
+        if (Time.time - lastAvoidanceDecisionTime > avoidanceCommitmentDuration)
+        {
+            committedAvoidanceOffset = avoidanceOffset;
+            avoidanceCommitmentTimer = avoidanceCommitmentDuration;
+            lastAvoidanceDecisionTime = Time.time;
+        }
+        else
+        {
+            avoidanceCommitmentTimer -= Time.deltaTime;
+        }
+
+        float randomOffset = (pathRandomness > 0)
+            ? (Mathf.PerlinNoise(Time.time * randomnessChangeRate, perlinSeed) * 2f - 1f) * pathRandomness
+            : 0f;
+
+        float totalLateralOffset = randomOffset + currentOvertakeOffset + committedAvoidanceOffset;
+
+        if (totalLateralOffset != 0)
+        {
+            int targetIndex = (currentWaypointIndex + adjustedLookahead) % racingLine.Points.Count;
+            int nextPointIndex = (targetIndex + 1) % racingLine.Points.Count;
+            Vector3 tangent = (racingLine.Points[nextPointIndex] - racingLine.Points[targetIndex]).normalized;
+            Vector3 normal = Vector3.Cross(tangent, Vector3.up);
+            targetPoint += normal * totalLateralOffset;
         }
         
-        // Apply skill level to speed management
-        float speedMultiplier = Mathf.Lerp(minSpeedMultiplier, maxSpeedMultiplier, skillLevel);
-        targetSpeed *= speedMultiplier;
+        Vector3 worldTargetPoint = trackGenerator.transform.TransformPoint(targetPoint);
         
-        // Adjust for aggressiveness
-        targetSpeed *= (1f + aggressiveness * 0.2f); // More aggressive drivers go faster
-        
+        // --- 4. Calculate final speed and steering ---
+        currentSteer = Mathf.Lerp(currentSteer, GetTargetSteer(worldTargetPoint), Time.deltaTime * steeringSpeed * (1f + skillLevel));
+        float finalTargetSpeed = idealTargetSpeed * RubberBandingFactor;
+
         // Determine acceleration/braking
         float currentSpeed = vehicleController.carVelocity.magnitude / vehicleController.MaxSpeed;
-        
-        // Debug current speed vs target speed
-        if (showDebugInfo)
-        {
-            Debug.DrawRay(transform.position + Vector3.up * 3f, Vector3.right * currentSpeed * 5f, Color.green);
-            Debug.DrawRay(transform.position + Vector3.up * 3.5f, Vector3.right * targetSpeed * 5f, Color.yellow);
-        }
         
         // Calculate how much we need to slow down based on corner factor - more gradual curve
         float cornerBrakingFactor = Mathf.Pow(cornerFactor, 0.8f) * 1.2f; // Less aggressive exponential curve
@@ -232,9 +328,9 @@ public class AIVehicleController : MonoBehaviour
         // Phase 1: Cut throttle when approaching corners or slightly over target speed
         // Phase 2: Apply brakes only when significantly over target speed or in sharp corners
         
-        bool shouldAccelerate = currentSpeed < targetSpeed && cornerFactor < 0.1f; // Lower threshold for acceleration
-        bool needsThrottleCut = cornerFactor > 0.05f || currentSpeed > targetSpeed * 1.05f; // Start cutting throttle earlier
-        bool needsActiveBraking = currentSpeed > targetSpeed * 1.15f || cornerFactor > 0.3f; // Higher threshold for actual braking
+        bool shouldAccelerate = currentSpeed < finalTargetSpeed && cornerFactor < 0.1f;
+        bool needsThrottleCut = cornerFactor > 0.05f || currentSpeed > finalTargetSpeed * 1.05f;
+        bool needsActiveBraking = currentSpeed > finalTargetSpeed * 1.15f || cornerFactor > 0.3f;
         
         if (shouldAccelerate)
         {
@@ -264,7 +360,7 @@ public class AIVehicleController : MonoBehaviour
             currentAcceleration = Mathf.Lerp(currentAcceleration, 0f, Time.deltaTime * accelerationSpeed * 1.5f);
             
             // Only apply light braking if significantly over target speed
-            float speedDifference = currentSpeed - targetSpeed;
+            float speedDifference = currentSpeed - finalTargetSpeed;
             float lightBrakingIntensity = 0f;
             
             if (speedDifference > 0.1f) // Only brake if 10% over target speed
@@ -275,22 +371,15 @@ public class AIVehicleController : MonoBehaviour
             currentBrake = Mathf.Lerp(currentBrake, lightBrakingIntensity, Time.deltaTime * accelerationSpeed * 1.5f);
             
             isUsingNitro = false;
-            
-            // Debug visualization for throttle cut phase
-            if (showDebugInfo && cornerFactor > 0.05f)
-            {
-                Debug.DrawRay(transform.position + Vector3.up * 4.2f, Vector3.left * 2f, Color.orange);
-                Debug.Log($"Car {gameObject.name}: Cutting throttle, corner factor {cornerFactor:F2}");
-            }
         }
         else if (needsActiveBraking)
         {
             // Phase 2: Apply active braking when necessary
-            float speedDifference = currentSpeed - targetSpeed;
+            float speedDifference = currentSpeed - finalTargetSpeed;
             
             // Calculate braking intensity based on speed difference and corner factor
             float brakingIntensity = Mathf.Clamp01(speedDifference * brakingIntensityMultiplier * 0.8f);
-            
+                
             // Add corner-based braking for sharp turns
             if (cornerFactor > 0.3f)
             {
@@ -305,16 +394,6 @@ public class AIVehicleController : MonoBehaviour
             currentBrake = Mathf.Lerp(currentBrake, brakingIntensity, Time.deltaTime * accelerationSpeed * 1.5f);
             
             isUsingNitro = false;
-            
-            // Enhanced debug visualization for active braking
-            if (showDebugInfo && brakingIntensity > 0.05f)
-            {
-                Debug.DrawRay(transform.position + Vector3.up * 4f, Vector3.left * brakingIntensity * 5f, Color.red);
-                if (brakingIntensity > 0.2f)
-                {
-                    Debug.Log($"Car {gameObject.name}: Active braking with intensity {brakingIntensity:F2}, corner factor {cornerFactor:F2}");
-                }
-            }
         }
         else
         {
@@ -325,7 +404,7 @@ public class AIVehicleController : MonoBehaviour
         }
         
         // Use handbrake for sharp corners to prevent loss of control
-        currentHandbrake = cornerFactor > handbrakeThreshold ? Mathf.Lerp(currentHandbrake, (cornerFactor - handbrakeThreshold) * 1.5f, Time.deltaTime * accelerationSpeed) : 0f;
+        currentHandbrake = cornerFactor > handbrakeThresholdRandomized ? Mathf.Lerp(currentHandbrake, (cornerFactor - handbrakeThresholdRandomized) * handbrakeStrength, Time.deltaTime * accelerationSpeed) : 0f;
         
         // Apply inputs to vehicle controller
         if (vehicleController.inputManager != null)
@@ -350,41 +429,152 @@ public class AIVehicleController : MonoBehaviour
                 Debug.DrawLine(start, end, pathColor);
             }
             
-            // Draw avoidance vector
-            Debug.DrawRay(transform.position, avoidanceVector * 5f, Color.red);
-            
             // Draw handbrake activation
             if (currentHandbrake > 0f)
             {
                 Debug.DrawRay(transform.position + Vector3.up * 4.5f, Vector3.right * currentHandbrake * 5f, Color.magenta);
-                Debug.Log($"Car {gameObject.name}: Using handbrake with intensity {currentHandbrake:F2}, corner factor {cornerFactor:F2}");
+            }
+        }
+
+        // Defensive driving timer
+        if (isDefending)
+        {
+            defenseTimer += Time.deltaTime;
+            if (defenseTimer >= defenseDuration)
+            {
+                isDefending = false;
+                vehicleController.Acceleration = originalAcceleration;
+                Debug.Log($"<color=red>{gameObject.name} has STOPPED defending.</color>");
             }
         }
     }
-    
-    private Vector3 CalculateAvoidanceVector()
+
+    private float GetTargetSteer(Vector3 worldTargetPoint)
     {
-        Vector3 avoidanceVector = Vector3.zero;
+        // Calculate the steering angle needed to follow the racing line.
+        Vector3 directionToTarget = worldTargetPoint - transform.position;
+        Vector3 localDirection = transform.InverseTransformDirection(directionToTarget);
+        float targetSteer = Mathf.Clamp(localDirection.x / localDirection.magnitude, -maxSteeringAngle, maxSteeringAngle);
+        targetSteer *= Mathf.Lerp(1.5f, 1.0f, skillLevel);
+
+        return targetSteer;
+    }
+    
+    private void UpdateOvertakingLogic(float idealSpeedNormalized)
+    {
+        if (overtakeCooldownTimer > 0)
+        {
+            overtakeCooldownTimer -= Time.deltaTime;
+            return;
+        }
+
+        if (isOvertaking)
+        {
+            // Check if overtake is complete
+            if (carToOvertake == null) 
+            {
+                isOvertaking = false;
+                targetOvertakeOffset = 0f;
+                overtakeCooldownTimer = overtakeCooldown;
+                carToOvertake = null;
+                vehicleController.Acceleration = originalAcceleration; // Reset acceleration
+                return;
+            }
+
+            Vector3 directionToTargetCar = carToOvertake.transform.position - transform.position;
+            if (Vector3.Dot(transform.forward, directionToTargetCar) < 0)
+            {
+                Debug.Log($"<color=cyan>{gameObject.name} has COMPLETED overtaking {carToOvertake.name}.</color>");
+                isOvertaking = false;
+                targetOvertakeOffset = 0f;
+                overtakeCooldownTimer = overtakeCooldown;
+                carToOvertake = null;
+                vehicleController.Acceleration = originalAcceleration; // Reset acceleration
+            }
+            return; 
+        }
+
+        // Find the closest car in front
+        AIVehicleController leadCar = FindCarToOvertake(idealSpeedNormalized);
         
+        if (leadCar != null)
+        {
+            timeStuck += Time.deltaTime;
+            
+            if (timeStuck > overtakeTriggerTime)
+            {
+                Debug.Log($"<color=orange>{gameObject.name} is STARTING to overtake {leadCar.name}!</color>");
+                isOvertaking = true;
+                carToOvertake = leadCar;
+                timeStuck = 0f;
+                float boostFactor = Random.Range(1.1f, 1.3f);
+                vehicleController.Acceleration = originalAcceleration * boostFactor; // Boost acceleration
+                
+                float overtakeDirection = (Random.value > 0.5f) ? 1f : -1f;
+                targetOvertakeOffset = overtakeLaneOffset * overtakeDirection;
+
+                // NEW: Ask the car being overtaken to defend
+                leadCar.TryStartDefense(vehicleController.Acceleration);
+            }
+        }
+        else
+        {
+            timeStuck = 0f;
+        }
+    }
+
+    private AIVehicleController FindCarToOvertake(float idealSpeedNormalized)
+    {
+        float closestDistance = 15f; 
+        AIVehicleController potentialTarget = null;
+
         foreach (var vehicle in otherVehicles)
         {
             if (vehicle == null || !vehicle.isActiveAndEnabled) continue;
-            
             Vector3 directionToVehicle = vehicle.transform.position - transform.position;
             float distance = directionToVehicle.magnitude;
             
-            // Only avoid if within avoidance distance and in front of us
-            if (distance < avoidanceDistance && Vector3.Dot(transform.forward, directionToVehicle.normalized) > 0.5f)
+            // More lenient "in front" check - reduce from 0.8 to 0.6 (about 53 degrees)
+            bool isInFront = Vector3.Dot(transform.forward, directionToVehicle.normalized) > 0.6f;
+
+            if (isInFront && distance < closestDistance)
             {
-                // Calculate avoidance force (stronger as we get closer)
-                float avoidanceForce = 1f - (distance / avoidanceDistance);
-                avoidanceVector -= directionToVehicle.normalized * avoidanceForce;
+                closestDistance = distance;
+                potentialTarget = vehicle;
+            }
+        }
+
+        bool isTargetValid = false;
+        if (potentialTarget != null)
+        {
+            float desiredSpeed = idealSpeedNormalized * vehicleController.MaxSpeed;
+            float targetSpeed = potentialTarget.vehicleController.carVelocity.magnitude;
+            
+            // More lenient speed comparison - consider target slower if we want to go 5% faster
+            bool isSlower = desiredSpeed > targetSpeed * 1.05f;
+            bool onStraight = DetectUpcomingCorners() < maxOvertakeCornerFactor;
+
+            isTargetValid = isSlower && onStraight;
+        }
+
+        if (showDebugInfo)
+        {
+            foreach (var vehicle in otherVehicles)
+            {
+                if (vehicle == null || !vehicle.isActiveAndEnabled) continue;
+                
+                Color debugColor = Color.grey; 
+                if (vehicle == potentialTarget)
+                {
+                    debugColor = isTargetValid ? Color.green : Color.yellow;
+                }
+                Debug.DrawLine(transform.position, vehicle.transform.position, debugColor);
             }
         }
         
-        return avoidanceVector;
+        return isTargetValid ? potentialTarget : null;
     }
-    
+
     /// <summary>
     /// Detects upcoming corners by analyzing multiple points ahead on the racing line
     /// Returns a value between 0 and 1 indicating the sharpness of upcoming corners
@@ -470,5 +660,94 @@ public class AIVehicleController : MonoBehaviour
         }
         
         return Mathf.Clamp01(cornerFactor);
+    }
+
+    // Defensive driving: called by overtaking car
+    public void TryStartDefense(float attackerAcceleration)
+    {
+        if (isDefending) return; // Already defending
+
+        if (Random.value < 0.5f) // 50% chance
+        {
+            isDefending = true;
+            defenseDuration = Random.Range(5f, 10f);
+            defenseTimer = 0f;
+            vehicleController.Acceleration = attackerAcceleration;
+            Debug.Log($"<color=red>{gameObject.name} is DEFENDING against overtake!</color>");
+        }
+    }
+
+    // Force an overtake attempt on a specific car (called by AIRaceManager)
+    public void ForceOvertake(AIVehicleController target)
+    {
+        if (target == null || isOvertaking || carToOvertake == target) return;
+        Debug.Log($"[AI] {gameObject.name} is FORCED to overtake {target.gameObject.name} by manager.");
+        isOvertaking = true;
+        carToOvertake = target;
+        timeStuck = 0f;
+        float boostFactor = Random.Range(1.1f, 1.3f);
+        vehicleController.Acceleration = originalAcceleration * boostFactor;
+        float overtakeDirection = (Random.value > 0.5f) ? 1f : -1f;
+        targetOvertakeOffset = overtakeLaneOffset * overtakeDirection;
+        overtakeCooldownTimer = overtakeCooldown;
+        // Ask the car being overtaken to defend
+        target.TryStartDefense(vehicleController.Acceleration);
+    }
+
+    // --- NEW: Dynamic Threat Field Avoidance System ---
+    private float CalculateDynamicAvoidanceOffset()
+    {
+        float totalOffset = 0f;
+        float totalThreat = 0f;
+        Vector3 myPos = transform.position;
+        Vector3 myFwd = transform.forward;
+        float mySpeed = vehicleController.carVelocity.magnitude;
+
+        foreach (var other in otherVehicles)
+        {
+            if (other == null || !other.isActiveAndEnabled) continue;
+            Vector3 toOther = other.transform.position - myPos;
+            float distance = toOther.magnitude;
+            if (distance > avoidanceDetectionRadius) continue;
+            float angle = Vector3.Angle(myFwd, toOther);
+            if (angle > avoidanceAwarenessAngle * 0.5f) continue;
+
+            // Threat score: closer, more in front, and higher relative speed = higher threat
+            float relSpeed = Vector3.Dot(other.vehicleController.carVelocity - vehicleController.carVelocity, myFwd);
+            float threat = Mathf.Lerp(1.0f, 0.1f, distance / avoidanceDetectionRadius);
+            threat *= Mathf.Lerp(1.0f, 0.2f, angle / (avoidanceAwarenessAngle * 0.5f));
+            threat *= 1.0f + Mathf.Clamp01(relSpeed / Mathf.Max(1f, mySpeed));
+
+            // Aggression: aggressive AIs tolerate more, cautious AIs avoid more
+            float aggressionFactor = Mathf.Lerp(1.2f, 0.7f, aggressiveness);
+            threat *= aggressionFactor;
+
+            // Lateral offset: steer away from the other car's local X position
+            Vector3 localToOther = transform.InverseTransformPoint(other.transform.position);
+            float side = Mathf.Sign(localToOther.x);
+            float offset = side * Mathf.Lerp(1.5f, 3.0f, threat); // more threat = bigger offset
+            totalOffset += offset * threat;
+            totalThreat += threat;
+
+            // Debug: draw threat lines
+            if (showDebugInfo)
+            {
+                Debug.DrawLine(myPos + Vector3.up * 2f, other.transform.position + Vector3.up * 2f, Color.red);
+                Debug.DrawRay(other.transform.position + Vector3.up * 2f, Vector3.up * threat * 2f, Color.magenta);
+            }
+        }
+
+        // Average the offset by total threat
+        float avoidanceOffset = (totalThreat > 0f) ? totalOffset / totalThreat : 0f;
+
+        // If overtaking, bias to the chosen overtake side
+        if (isOvertaking && carToOvertake != null)
+        {
+            avoidanceOffset += Mathf.Sign(targetOvertakeOffset) * 1.0f;
+        }
+
+        // Smooth the offset for stability
+        avoidanceOffset = Mathf.Clamp(avoidanceOffset, -3.5f, 3.5f);
+        return avoidanceOffset;
     }
 }
