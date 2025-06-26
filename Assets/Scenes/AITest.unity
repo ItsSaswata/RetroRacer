@@ -395,9 +395,8 @@ MonoBehaviour:
   - {fileID: 321616085496138627, guid: 3de01424804a7cf41bbc5266ad066d86, type: 3}
   - {fileID: 5505070333310861898, guid: 68882d0ce68ab9e4da349189fe83d3e0, type: 3}
   - {fileID: 5133139713709978575, guid: 045ea7d5027d0b8468164902ce8cf621, type: 3}
-  - {fileID: 1442448109624292080, guid: c45ed9ba711d56e4aaf1b4ee416a2596, type: 3}
   - {fileID: 5732929322218367154, guid: 57d987d5ad4d1e1418480394f89b0e87, type: 3}
-  numberOfAIRacers: 2
+  numberOfAIRacers: 4
   startingOffset: 2
   minSkillLevel: 0.5
   maxSkillLevel: 0.9

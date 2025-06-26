@@ -141,6 +141,9 @@ public class AIVehicleController : MonoBehaviour
     {
         vehicleController = GetComponent<SimcadeVehicleController>();
         
+        // Always enable Auto Counter Steer for AI
+        vehicleController.AutoCounterSteer = true;
+        
         // Find track generator if not assigned
         if (trackGenerator == null)
         {
@@ -188,13 +191,13 @@ public class AIVehicleController : MonoBehaviour
         {
             handbrakeStrength = Random.Range(2.5f, 3.5f);
             handbrakeThresholdRandomized = Random.Range(0.08f, 0.14f);
-            vehicleController.driftFactor = -0.15f;
+            vehicleController.driftFactor = -0.25f;
         }
         else
         {
-            handbrakeStrength = Random.Range(1.0f, 1.5f);
-            handbrakeThresholdRandomized = Random.Range(0.18f, 0.25f);
-            vehicleController.driftFactor = 0.15f;
+            handbrakeStrength = Random.Range(0.05f, 0.1f);
+            handbrakeThresholdRandomized = Random.Range(0.16f, 0.19f);
+            vehicleController.driftFactor = Random.Range(0.52f, 0.63f);
         }
         Debug.Log($"[AI] {gameObject.name} isDrifty={isDrifty}, handbrakeStrength={handbrakeStrength:F2}, handbrakeThreshold={handbrakeThresholdRandomized:F2}, driftFactor={vehicleController.driftFactor:F2}");
     }
@@ -404,7 +407,21 @@ public class AIVehicleController : MonoBehaviour
         }
         
         // Use handbrake for sharp corners to prevent loss of control
-        currentHandbrake = cornerFactor > handbrakeThresholdRandomized ? Mathf.Lerp(currentHandbrake, (cornerFactor - handbrakeThresholdRandomized) * handbrakeStrength, Time.deltaTime * accelerationSpeed) : 0f;
+        // NEW: Slam handbrake at sharp corners, release smoothly (player-like drift)
+        if (cornerFactor > handbrakeThresholdRandomized)
+        {
+            // "Press" handbrake hard at the start of a sharp corner
+            currentHandbrake = Mathf.Lerp(currentHandbrake, 1.0f, Time.deltaTime * 2f);
+            if (showDebugInfo && currentHandbrake > 0.7f)
+            {
+                Debug.Log($"[AI] {gameObject.name} DRIFTING! Handbrake: {currentHandbrake:F2} (cornerFactor: {cornerFactor:F2})");
+            }
+        }
+        else
+        {
+            // Release handbrake smoothly
+            currentHandbrake = Mathf.Lerp(currentHandbrake, 0f, Time.deltaTime * 2f);
+        }
         
         // Apply inputs to vehicle controller
         if (vehicleController.inputManager != null)

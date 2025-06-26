@@ -851,7 +851,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   brakeAcceleration: 10
   RollingResistance: 2
-  driftFactor: 1
+  driftFactor: 0.2
   maxDriftAngle: 60
   FrictionCoefficient: 1
   slopeSlideAngle: 30
