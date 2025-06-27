@@ -107,7 +107,6 @@ public class AIVehicleController : MonoBehaviour
     private float currentAcceleration = 0f;
     private float currentBrake = 0f;
     private float currentHandbrake = 0f;
-    private bool isUsingNitro = false;
     private List<AIVehicleController> otherVehicles = new List<AIVehicleController>();
     private float perlinSeed;
     private bool isOvertaking = false;
@@ -137,12 +136,36 @@ public class AIVehicleController : MonoBehaviour
     [SerializeField]
     private bool isDrifty = false;
     
+    // Nitro system for AI
+    private float aiNitroCooldownTimer = 0f;
+    private float aiNitroCooldownDuration = 0f;
+    
+    // Nitro slowdown state
+    private float nitroSlowdownTimer = 0f;
+    private float nitroSlowdownDuration = 2.5f; // seconds to enforce slowdown after nitro
+    private bool isNitroSlowingDown = false;
+    
+    // Nitro at race start
+    private bool forceStartNitro = false;
+    private float startNitroTimer = 0f;
+    private float startNitroDuration = 2f;
+    
+    private bool wasRacing = false;
+    
     private void Awake()
     {
         vehicleController = GetComponent<SimcadeVehicleController>();
         
         // Always enable Auto Counter Steer for AI
         vehicleController.AutoCounterSteer = true;
+        
+        // Disable the camera for AI cars (if present)
+        if (vehicleController.cinemachineCamera != null)
+        {
+            vehicleController.cinemachineCamera.gameObject.SetActive(false);
+            // Optionally, also disable alternativeCamera if needed:
+            // if (vehicleController.alternativeCamera != null) vehicleController.alternativeCamera.gameObject.SetActive(false);
+        }
         
         // Find track generator if not assigned
         if (trackGenerator == null)
@@ -187,19 +210,21 @@ public class AIVehicleController : MonoBehaviour
         originalAcceleration = vehicleController.Acceleration;
 
         // Drifty/non-drifty switch
-        if (isDrifty)
-        {
-            handbrakeStrength = Random.Range(2.5f, 3.5f);
-            handbrakeThresholdRandomized = Random.Range(0.08f, 0.14f);
-            vehicleController.driftFactor = -0.25f;
-        }
-        else
-        {
+        
             handbrakeStrength = Random.Range(0.05f, 0.1f);
-            handbrakeThresholdRandomized = Random.Range(0.16f, 0.19f);
+            handbrakeThresholdRandomized = Random.Range(0.12f, 0.19f);
             vehicleController.driftFactor = Random.Range(0.52f, 0.63f);
-        }
+      
         Debug.Log($"[AI] {gameObject.name} isDrifty={isDrifty}, handbrakeStrength={handbrakeStrength:F2}, handbrakeThreshold={handbrakeThresholdRandomized:F2}, driftFactor={vehicleController.driftFactor:F2}");
+
+        aiNitroCooldownDuration = Random.Range(22f, 30f);
+        aiNitroCooldownTimer = aiNitroCooldownDuration;
+
+        // Randomize nitro acceleration multiplier for this AI car
+        vehicleController.nitroAccelerationMultiplier = Random.Range(1.01f, 1.05f);
+        
+        // Set higher turn angle for all AI cars
+        vehicleController.MaxTurnAngle = 33f;
     }
     
     private void Start()
@@ -243,6 +268,14 @@ public class AIVehicleController : MonoBehaviour
     
     private void Update()
     {
+        // Detect race start
+        if (!wasRacing && IsRacing)
+        {
+            forceStartNitro = true;
+            startNitroTimer = startNitroDuration;
+        }
+        wasRacing = IsRacing;
+
         if (!IsRacing)
         {
             // Before the race starts, keep the handbrake on to stay stationary.
@@ -327,6 +360,19 @@ public class AIVehicleController : MonoBehaviour
         // Calculate how much we need to slow down based on corner factor - more gradual curve
         float cornerBrakingFactor = Mathf.Pow(cornerFactor, 0.8f) * 1.2f; // Less aggressive exponential curve
         
+        // NEW: Enhanced braking when nitro is active or approaching sharp corners
+        if (vehicleController.isNitroActive && cornerFactor > 0.1f)
+        {
+            // More aggressive braking when nitro is active and approaching corners
+            cornerBrakingFactor *= 2.0f;
+        }
+        
+        // NEW: Emergency braking for very sharp corners
+        if (cornerFactor > 0.25f)
+        {
+            cornerBrakingFactor *= 1.5f;
+        }
+        
         // NEW: Two-phase braking approach for more realistic driving
         // Phase 1: Cut throttle when approaching corners or slightly over target speed
         // Phase 2: Apply brakes only when significantly over target speed or in sharp corners
@@ -334,6 +380,13 @@ public class AIVehicleController : MonoBehaviour
         bool shouldAccelerate = currentSpeed < finalTargetSpeed && cornerFactor < 0.1f;
         bool needsThrottleCut = cornerFactor > 0.05f || currentSpeed > finalTargetSpeed * 1.05f;
         bool needsActiveBraking = currentSpeed > finalTargetSpeed * 1.15f || cornerFactor > 0.3f;
+        
+        // NEW: Enhanced braking triggers when nitro is active
+        if (vehicleController.isNitroActive)
+        {
+            needsThrottleCut = cornerFactor > 0.03f || currentSpeed > finalTargetSpeed * 1.02f; // More sensitive
+            needsActiveBraking = currentSpeed > finalTargetSpeed * 1.1f || cornerFactor > 0.2f; // More aggressive
+        }
         
         if (shouldAccelerate)
         {
@@ -343,16 +396,6 @@ public class AIVehicleController : MonoBehaviour
             
             currentAcceleration = Mathf.Lerp(currentAcceleration, accelerationFactor, Time.deltaTime * accelerationSpeed);
             currentBrake = Mathf.Lerp(currentBrake, 0f, Time.deltaTime * accelerationSpeed * 2.0f); // Release brakes quickly
-            
-            // Use nitro on straights if available and not approaching a corner
-            if (useNitroOnStraights && recommendedSpeed > nitroThreshold && cornerFactor < 0.08f && !vehicleController.isNitroCooldown)
-            {
-                isUsingNitro = true;
-            }
-            else
-            {
-                isUsingNitro = false;
-            }
         }
         else if (needsThrottleCut)
         {
@@ -372,8 +415,6 @@ public class AIVehicleController : MonoBehaviour
             }
             
             currentBrake = Mathf.Lerp(currentBrake, lightBrakingIntensity, Time.deltaTime * accelerationSpeed * 1.5f);
-            
-            isUsingNitro = false;
         }
         else if (needsActiveBraking)
         {
@@ -395,15 +436,12 @@ public class AIVehicleController : MonoBehaviour
             
             // Apply brakes gradually
             currentBrake = Mathf.Lerp(currentBrake, brakingIntensity, Time.deltaTime * accelerationSpeed * 1.5f);
-            
-            isUsingNitro = false;
         }
         else
         {
             // Coasting - gradually reduce inputs
             currentAcceleration = Mathf.Lerp(currentAcceleration, 0f, Time.deltaTime * accelerationSpeed);
             currentBrake = Mathf.Lerp(currentBrake, 0f, Time.deltaTime * accelerationSpeed);
-            isUsingNitro = false;
         }
         
         // Use handbrake for sharp corners to prevent loss of control
@@ -423,10 +461,62 @@ public class AIVehicleController : MonoBehaviour
             currentHandbrake = Mathf.Lerp(currentHandbrake, 0f, Time.deltaTime * 2f);
         }
         
-        // Apply inputs to vehicle controller
+        // --- SIMPLE AI Nitro System ---
+        aiNitroCooldownTimer -= Time.deltaTime;
+        if (nitroSlowdownTimer > 0f) nitroSlowdownTimer -= Time.deltaTime;
+        float lookaheadCorner = GetLookaheadCornerFactor(1f);
+        float doubleLookaheadCorner = GetLookaheadCornerFactor(2f);
+        bool isSafeForNitro = lookaheadCorner < 0.1f && doubleLookaheadCorner < 0.1f;
+        if (forceStartNitro)
+        {
+            startNitroTimer -= Time.deltaTime;
+            if (startNitroTimer > 0f && isSafeForNitro)
+            {
+                // Force nitro at race start (only if both lookaheads are safe)
+                if (vehicleController.inputManager != null)
+                {
+                    vehicleController.inputManager.SetAIInputs(currentSteer, currentAcceleration, currentHandbrake > 0f ? currentHandbrake : currentBrake, true);
+                }
+                return;
+            }
+            else
+            {
+                forceStartNitro = false;
+            }
+        }
+        bool canUseNitro = aiNitroCooldownTimer <= 0f && vehicleController.currentNitro > 10f && !vehicleController.isNitroActive && !vehicleController.isNitroCooldown;
+        bool useNitro = false;
+        if (canUseNitro && isSafeForNitro && Random.value < 0.3f)
+        {
+            useNitro = true;
+            aiNitroCooldownTimer = aiNitroCooldownDuration = Random.Range(22f, 30f); // Reset cooldown
+            nitroSlowdownTimer = nitroSlowdownDuration;
+            isNitroSlowingDown = true;
+            Debug.Log($"[AI] {gameObject.name} USING NITRO! (Simple 30% logic, double lookahead)");
+        }
         if (vehicleController.inputManager != null)
         {
-            vehicleController.inputManager.SetAIInputs(currentSteer, currentAcceleration, currentHandbrake > 0f ? currentHandbrake : currentBrake, isUsingNitro);
+            vehicleController.inputManager.SetAIInputs(currentSteer, currentAcceleration, currentHandbrake > 0f ? currentHandbrake : currentBrake, useNitro);
+        }
+        
+        // After nitro, enforce slowdown to 90% of recommended speed
+        if (isNitroSlowingDown)
+        {
+            if (nitroSlowdownTimer > 0f)
+            {
+                float slowdownTarget = recommendedSpeed * 0.9f;
+                float slowdownCurrentSpeed = vehicleController.carVelocity.magnitude / vehicleController.MaxSpeed;
+                if (slowdownCurrentSpeed > slowdownTarget)
+                {
+                    // Aggressively cut throttle and apply brakes
+                    currentAcceleration = Mathf.Lerp(currentAcceleration, 0f, Time.deltaTime * 3f);
+                    currentBrake = Mathf.Lerp(currentBrake, 1f, Time.deltaTime * 2f);
+                }
+            }
+            else
+            {
+                isNitroSlowingDown = false;
+            }
         }
         
         // Debug visualization
@@ -451,6 +541,12 @@ public class AIVehicleController : MonoBehaviour
             {
                 Debug.DrawRay(transform.position + Vector3.up * 4.5f, Vector3.right * currentHandbrake * 5f, Color.magenta);
             }
+            
+            // Draw nitro lookahead (green line)
+            int longLookahead = Mathf.RoundToInt(lookaheadPoints * 2.5f);
+            int lookIdx = (currentWaypointIndex + longLookahead) % racingLine.Points.Count;
+            Vector3 lookaheadPoint = trackGenerator.transform.TransformPoint(racingLine.Points[lookIdx]);
+            Debug.DrawLine(transform.position + Vector3.up * 2f, lookaheadPoint + Vector3.up * 2f, Color.green);
         }
 
         // Defensive driving timer
@@ -766,5 +862,24 @@ public class AIVehicleController : MonoBehaviour
         // Smooth the offset for stability
         avoidanceOffset = Mathf.Clamp(avoidanceOffset, -3.5f, 3.5f);
         return avoidanceOffset;
+    }
+
+    private float GetLookaheadCornerFactor(float multiplier)
+    {
+        if (racingLine == null || racingLine.Points.Count == 0) return 0f;
+        int lookahead = Mathf.RoundToInt(lookaheadPoints * multiplier);
+        int idx1 = currentWaypointIndex;
+        int idx2 = (currentWaypointIndex + lookahead) % racingLine.Points.Count;
+        int idx3 = (currentWaypointIndex + lookahead * 2) % racingLine.Points.Count;
+        if (idx1 >= racingLine.Points.Count || idx2 >= racingLine.Points.Count || idx3 >= racingLine.Points.Count)
+            return 0f;
+        Vector3 p1 = racingLine.Points[idx1];
+        Vector3 p2 = racingLine.Points[idx2];
+        Vector3 p3 = racingLine.Points[idx3];
+        Vector3 v1 = (p2 - p1).normalized;
+        Vector3 v2 = (p3 - p2).normalized;
+        float dot = Vector3.Dot(v1, v2);
+        float curvature = 1f - (dot + 1f) / 2f;
+        return Mathf.Clamp01(curvature);
     }
 }

@@ -46,6 +46,9 @@ namespace Track
         [SerializeField, Tooltip("Checkpoint prefab to place along the track")]
         private GameObject checkpointPrefab;
         
+        [SerializeField, Tooltip("Start/Finish Line prefab to place at the straightest section of the track")]
+        private GameObject startFinishLinePrefab;
+        
         [SerializeField, Tooltip("Number of checkpoints to place along the track"), Range(4, 100)]
         private int numberOfCheckpoints = 10;
         
@@ -132,18 +135,18 @@ namespace Track
             StartCoroutine(StartRoutines());
         }
 
-        // Add new method for checkpoint generation
+        // Add new method for checkpoint and start/finish line generation
         private IEnumerator GenerateCheckpoints()
         {
             yield return new WaitForSeconds(0.1f);
             
-            if (checkpointPrefab == null || vertices.Count < 2)
+            if ((checkpointPrefab == null && startFinishLinePrefab == null) || vertices.Count < 2)
                 yield break;
         
-            // Clear existing checkpoints
+            // Clear existing checkpoints and start/finish lines
             foreach (Transform child in transform)
             {
-                if (child.name.StartsWith("Checkpoint"))
+                if (child.name.StartsWith("Checkpoint") || child.name.StartsWith("StartFinishLine"))
                     Destroy(child.gameObject);
             }
         
@@ -154,6 +157,7 @@ namespace Track
             // Offset starting position to prevent overlap
             float currentDistance = interval * 0.5f;
             
+            // Place checkpoints
             for (int i = 0; i < numberOfCheckpoints; i++)
             {
                 // Get position and direction from spline
@@ -168,16 +172,76 @@ namespace Track
                 // Apply vertical offset using track width
                 worldPos += Vector3.up * (Width * 0.5f + checkpointVerticalOffset);
                 
-                GameObject checkpoint = Instantiate(
-                    checkpointPrefab,
-                    worldPos,
-                    rotation,
-                    transform
-                );
-                checkpoint.name = $"Checkpoint_{i}";
+                if (checkpointPrefab != null)
+                {
+                    GameObject checkpoint = Instantiate(
+                        checkpointPrefab,
+                        worldPos,
+                        rotation,
+                        transform
+                    );
+                    checkpoint.name = $"Checkpoint_{i}";
+                }
                 
                 currentDistance += interval;
                 if (currentDistance > totalLength) break;
+            }
+
+            // Place Start/Finish Line at the straightest section using spline evaluation (like checkpoints)
+            if (startFinishLinePrefab != null)
+            {
+                // Find the straightest checkpoint position by sampling at checkpoint intervals
+                float straightestDistance = 0f;
+                float minCurvature = float.MaxValue;
+                
+                // Sample at the same intervals as checkpoints
+                float sfDistance = interval * 0.5f;
+                for (int i = 0; i < numberOfCheckpoints; i++)
+                {
+                    // Get current point and tangent
+                    Spline.Evaluate(Spline.ConvertIndexUnit(sfDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized), 
+                        out float3 position, 
+                        out float3 tangent, 
+                        out float3 up);
+                    
+                    // Get next point to calculate curvature
+                    float nextDistance = Mathf.Min(sfDistance + totalLength * 0.02f, totalLength);
+                    Spline.Evaluate(Spline.ConvertIndexUnit(nextDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized), 
+                        out float3 nextPosition, 
+                        out float3 nextTangent, 
+                        out float3 nextUp);
+                    
+                    // Calculate curvature (angle between tangents)
+                    float curvature = Vector3.Angle(tangent, nextTangent);
+                    
+                    if (curvature < minCurvature)
+                    {
+                        minCurvature = curvature;
+                        straightestDistance = sfDistance;
+                    }
+                    
+                    sfDistance += interval;
+                    if (sfDistance > totalLength) break;
+                }
+                
+                // Place the Start/Finish Line at the straightest checkpoint position
+                Spline.Evaluate(Spline.ConvertIndexUnit(straightestDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized), 
+                    out float3 sfPosition, 
+                    out float3 sfTangent, 
+                    out float3 sfUp);
+                
+                Vector3 sfWorldPos = transform.TransformPoint(sfPosition);
+                Quaternion sfRotation = Quaternion.LookRotation(transform.TransformDirection(sfTangent));
+                sfRotation *= Quaternion.Euler(0, 0, 0); 
+                sfWorldPos += Vector3.up * (Width * 0.5f + checkpointVerticalOffset);
+                
+                GameObject sfLine = Instantiate(
+                    startFinishLinePrefab,
+                    sfWorldPos,
+                    sfRotation,
+                    transform
+                );
+                sfLine.name = "StartFinishLine";
             }
         }
 

@@ -10,7 +10,7 @@ public class AIRaceManager : MonoBehaviour
     [SerializeField] private TrackGenerator trackGenerator;
     [SerializeField] private List<GameObject> aiVehiclePrefabs;
     [SerializeField, Range(1, 10)] private int numberOfAIRacers = 3;
-    [SerializeField] private float startingOffset = 5f;
+    [SerializeField] private float startingOffset = 15f;
     
     [Header("AI Difficulty Settings")]
     [SerializeField, Range(0f, 1f)] private float minSkillLevel = 0.5f;
@@ -90,11 +90,56 @@ public class AIRaceManager : MonoBehaviour
         }
         aiRacers.Clear();
         
-        // Get starting position and orientation from the racing line
-        Vector3 startPosition = trackGenerator.transform.TransformPoint(trackGenerator.RacingLine.Points[0]);
-        Vector3 startDirection = trackGenerator.transform.TransformPoint(trackGenerator.RacingLine.Points[5]) - startPosition;
+        // Find the Start/Finish Line
+        Transform startFinishLine = null;
+        foreach (Transform child in trackGenerator.transform)
+        {
+            if (child.name == "StartFinishLine")
+            {
+                startFinishLine = child;
+                break;
+            }
+        }
+        
+        if (startFinishLine == null)
+        {
+            Debug.LogWarning("Start/Finish Line not found! Falling back to racing line start position.");
+            // Fallback to original racing line method
+            Vector3 fallbackPosition = trackGenerator.transform.TransformPoint(trackGenerator.RacingLine.Points[0]);
+            Vector3 fallbackDirection = trackGenerator.transform.TransformPoint(trackGenerator.RacingLine.Points[5]) - fallbackPosition;
+            fallbackDirection.y = 0;
+            fallbackDirection.Normalize();
+            SpawnCarsAtPosition(fallbackPosition, fallbackDirection);
+            return;
+        }
+        
+        // Get position and orientation from the Start/Finish Line
+        Vector3 startPosition = startFinishLine.position;
+        Vector3 startDirection = startFinishLine.forward; // 
         startDirection.y = 0;
         startDirection.Normalize();
+        
+        // Find ground level at the start position
+        Vector3 groundPosition = FindGroundPosition(startPosition);
+        
+        SpawnCarsAtPosition(groundPosition, startDirection);
+    }
+    
+    private Vector3 FindGroundPosition(Vector3 startPosition)
+    {
+        // Raycast downward to find the ground
+        RaycastHit hit;
+        if (Physics.Raycast(startPosition + Vector3.up * 10f, Vector3.down, out hit, 20f))
+        {
+            return hit.point + Vector3.up * 0.5f; // Slight offset above ground
+        }
+        
+        // Fallback: use the start position but at a reasonable height
+        return new Vector3(startPosition.x, startPosition.y - 2f, startPosition.z);
+    }
+    
+    private void SpawnCarsAtPosition(Vector3 startPosition, Vector3 startDirection)
+    {
         Vector3 sideDirection = Vector3.Cross(startDirection, Vector3.up);
 
         // Grid layout settings
@@ -108,7 +153,7 @@ public class AIRaceManager : MonoBehaviour
             int row = i / carsPerRow;
             int col = i % carsPerRow;
             
-            // Calculate position with offset
+            // Calculate position with offset (cars spawn behind the start line)
             Vector3 rowOffset = -startDirection * (row * rowSpacing + startingOffset);
             // Center the grid: (0 - 0.5) = -0.5, (1 - 0.5) = 0.5 for a 2-car row.
             float gridCenterOffset = (carsPerRow - 1) * 0.5f; 
