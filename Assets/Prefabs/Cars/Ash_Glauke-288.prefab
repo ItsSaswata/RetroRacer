@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4093802916912649811
 Transform:
   m_ObjectHideFlags: 0
@@ -410,8 +410,8 @@ MonoBehaviour:
   normalCameraHeight: 1.51
   nitroCameraHeight: 0.9
   cameraTransitionSpeed: 2
-  MaxSpeed: 98
-  Acceleration: 25
+  MaxSpeed: 102
+  Acceleration: 28
   AccelerationCurve:
     serializedVersion: 2
     m_Curve:
@@ -425,8 +425,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0.2820254
     - serializedVersion: 3
-      time: 0.1358562
-      value: 0.3574913
+      time: 0.07711749
+      value: 0.34021837
       inSlope: -0.8525442
       outSlope: -0.8525442
       tangentMode: 0
@@ -496,7 +496,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   brakeAcceleration: 7
   RollingResistance: 2
-  driftFactor: 0.1
+  driftFactor: 0.01
   maxDriftAngle: 60
   FrictionCoefficient: 1
   slopeSlideAngle: 30
@@ -552,10 +552,10 @@ MonoBehaviour:
   AutoCounterSteer: 1
   DownForce: 5
   airAngularDrag: 0.2
-  nitroAccelerationMultiplier: 2
-  nitroMaxSpeedMultiplier: 1.5
+  nitroAccelerationMultiplier: 1.1
+  nitroMaxSpeedMultiplier: 1.1
   nitroDuration: 3
-  nitroCooldown: 5
+  nitroCooldown: 12
   nitroDepletionRate: 0.3
   nitroRefillRate: 0.1
   currentNitro: 100

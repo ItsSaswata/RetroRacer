@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Car
   - Checkpoint
+  - Fall
+  - StartFinish
   layers:
   - Default
   - TransparentFX
