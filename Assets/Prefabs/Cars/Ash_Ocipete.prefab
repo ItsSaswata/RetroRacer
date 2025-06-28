@@ -294,7 +294,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0a5fa0e3de53444488e88fe9ce77ebee, type: 2}
+  - {fileID: 2100000, guid: 432bfa456457044e1926a80b32cd2f59, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -412,7 +412,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0a5fa0e3de53444488e88fe9ce77ebee, type: 2}
+  - {fileID: 2100000, guid: 432bfa456457044e1926a80b32cd2f59, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -587,8 +587,8 @@ MonoBehaviour:
   normalCameraHeight: 1.51
   nitroCameraHeight: 0.9
   cameraTransitionSpeed: 2
-  MaxSpeed: 100
-  Acceleration: 30
+  MaxSpeed: 110
+  Acceleration: 32
   AccelerationCurve:
     serializedVersion: 2
     m_Curve:
@@ -729,10 +729,10 @@ MonoBehaviour:
   AutoCounterSteer: 0
   DownForce: 5
   airAngularDrag: 0.2
-  nitroAccelerationMultiplier: 2
-  nitroMaxSpeedMultiplier: 1.5
-  nitroDuration: 3
-  nitroCooldown: 5
+  nitroAccelerationMultiplier: 1.2
+  nitroMaxSpeedMultiplier: 1.15
+  nitroDuration: 3.5
+  nitroCooldown: 12
   nitroDepletionRate: 0.3
   nitroRefillRate: 0.1
   currentNitro: 100
@@ -838,8 +838,8 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 2c3d914dbaa4b7d4a90dedb7e6ea952a, type: 3}
-  m_Resource: {fileID: 8300000, guid: 2c3d914dbaa4b7d4a90dedb7e6ea952a, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 341ecd1d46699ba4e9e224f3a14dd15b, type: 3}
+  m_Resource: {fileID: 8300000, guid: 341ecd1d46699ba4e9e224f3a14dd15b, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -1254,7 +1254,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0a5fa0e3de53444488e88fe9ce77ebee, type: 2}
+  - {fileID: 2100000, guid: 432bfa456457044e1926a80b32cd2f59, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1588,7 +1588,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0a5fa0e3de53444488e88fe9ce77ebee, type: 2}
+  - {fileID: 2100000, guid: 432bfa456457044e1926a80b32cd2f59, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

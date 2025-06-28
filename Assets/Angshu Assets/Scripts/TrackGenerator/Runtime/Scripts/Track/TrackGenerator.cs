@@ -157,84 +157,45 @@ namespace Track
             // Offset starting position to prevent overlap
             float currentDistance = interval * 0.5f;
             
-            // Place checkpoints
-            for (int i = 0; i < numberOfCheckpoints; i++)
-            {
-                // Get position and direction from spline
-                Spline.Evaluate(Spline.ConvertIndexUnit(currentDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized), 
-                    out float3 position, 
-                    out float3 tangent, 
-                    out float3 up);
-                
-                Vector3 worldPos = transform.TransformPoint(position);
-                Quaternion rotation = Quaternion.LookRotation(transform.TransformDirection(tangent));
-                rotation *= Quaternion.Euler(0, 90, 0); 
-                // Apply vertical offset using track width
-                worldPos += Vector3.up * (Width * 0.5f + checkpointVerticalOffset);
-                
-                if (checkpointPrefab != null)
-                {
-                    GameObject checkpoint = Instantiate(
-                        checkpointPrefab,
-                        worldPos,
-                        rotation,
-                        transform
-                    );
-                    checkpoint.name = $"Checkpoint_{i}";
-                }
-                
-                currentDistance += interval;
-                if (currentDistance > totalLength) break;
-            }
-
-            // Place Start/Finish Line at the straightest section using spline evaluation (like checkpoints)
+            // Prepare to skip checkpoint at Start/Finish Line
+            float startFinishDistance = -1f;
+            
+            // Find Start/Finish Line position first if prefab exists
             if (startFinishLinePrefab != null)
             {
-                // Find the straightest checkpoint position by sampling at checkpoint intervals
                 float straightestDistance = 0f;
                 float minCurvature = float.MaxValue;
-                
-                // Sample at the same intervals as checkpoints
                 float sfDistance = interval * 0.5f;
                 for (int i = 0; i < numberOfCheckpoints; i++)
                 {
-                    // Get current point and tangent
                     Spline.Evaluate(Spline.ConvertIndexUnit(sfDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized), 
                         out float3 position, 
                         out float3 tangent, 
                         out float3 up);
-                    
-                    // Get next point to calculate curvature
                     float nextDistance = Mathf.Min(sfDistance + totalLength * 0.02f, totalLength);
                     Spline.Evaluate(Spline.ConvertIndexUnit(nextDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized), 
                         out float3 nextPosition, 
                         out float3 nextTangent, 
                         out float3 nextUp);
-                    
-                    // Calculate curvature (angle between tangents)
                     float curvature = Vector3.Angle(tangent, nextTangent);
-                    
                     if (curvature < minCurvature)
                     {
                         minCurvature = curvature;
                         straightestDistance = sfDistance;
                     }
-                    
                     sfDistance += interval;
                     if (sfDistance > totalLength) break;
                 }
-                
+                startFinishDistance = straightestDistance;
                 // Place the Start/Finish Line at the straightest checkpoint position
                 Spline.Evaluate(Spline.ConvertIndexUnit(straightestDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized), 
                     out float3 sfPosition, 
                     out float3 sfTangent, 
                     out float3 sfUp);
-                
                 Vector3 sfWorldPos = transform.TransformPoint(sfPosition);
                 Quaternion sfRotation = Quaternion.LookRotation(transform.TransformDirection(sfTangent));
                 sfRotation *= Quaternion.Euler(0, 0, 0); 
                 sfWorldPos += Vector3.up * (Width * 0.5f + checkpointVerticalOffset);
-                
                 GameObject sfLine = Instantiate(
                     startFinishLinePrefab,
                     sfWorldPos,
@@ -242,6 +203,39 @@ namespace Track
                     transform
                 );
                 sfLine.name = "StartFinishLine";
+                sfLine.tag = "StartFinish";
+            }
+            // Place checkpoints, skipping the one at Start/Finish Line
+            currentDistance = interval * 0.5f;
+            for (int i = 0; i < numberOfCheckpoints; i++)
+            {
+                // If this checkpoint is at (or very close to) the Start/Finish Line, skip it
+                if (startFinishDistance >= 0f && Mathf.Abs(currentDistance - startFinishDistance) < interval * 0.25f)
+                {
+                    currentDistance += interval;
+                    continue;
+                }
+                Spline.Evaluate(Spline.ConvertIndexUnit(currentDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized), 
+                    out float3 position, 
+                    out float3 tangent, 
+                    out float3 up);
+                Vector3 worldPos = transform.TransformPoint(position);
+                Quaternion rotation = Quaternion.LookRotation(transform.TransformDirection(tangent));
+                rotation *= Quaternion.Euler(0, 90, 0); 
+                worldPos += Vector3.up * (Width * 0.5f + checkpointVerticalOffset);
+                if (checkpointPrefab != null)
+                {
+                GameObject checkpoint = Instantiate(
+                    checkpointPrefab,
+                    worldPos,
+                    rotation,
+                    transform
+                );
+                checkpoint.name = $"Checkpoint_{i}";
+                    checkpoint.tag = "Checkpoint";
+                }
+                currentDistance += interval;
+                if (currentDistance > totalLength) break;
             }
         }
 
@@ -254,6 +248,8 @@ namespace Track
             yield return new WaitForSeconds(0.4f);
             StartCoroutine(GenerateMesh());
             yield return new WaitForSeconds(0.4f);
+            // Add or update the fall trigger after mesh generation
+            CreateOrUpdateFallTrigger();
             StartCoroutine(GenerateCheckpoints());
             yield return new WaitForSeconds(0.4f);
             if (generateRacingLine)
@@ -546,6 +542,40 @@ namespace Track
                     Debug.DrawLine(gridPoint, gridPoint + Vector3.up * 0.5f, Color.yellow);
                 }
             }
+        }
+
+        // Add a method to create or update the fall trigger
+        private void CreateOrUpdateFallTrigger()
+        {
+            // Remove any existing fall trigger
+            Transform existing = transform.Find("FallTrigger");
+            if (existing != null)
+            {
+                DestroyImmediate(existing.gameObject);
+            }
+
+            float totalLength = Spline.GetLength();
+            float boxSize = totalLength * 1.5f;
+            float height = 100f; // Tall enough to catch any car
+            float yOffset = 0f;
+            if (vertices.Count > 0)
+            {
+                // Find average Y for centering
+                float sumY = 0f;
+                foreach (var v in vertices) sumY += transform.TransformPoint(v).y;
+                yOffset = sumY / vertices.Count;
+            }
+
+            GameObject fallTrigger = new GameObject("FallTrigger");
+            fallTrigger.transform.parent = transform;
+            fallTrigger.transform.localPosition = Vector3.zero;
+            fallTrigger.transform.localRotation = Quaternion.identity;
+            fallTrigger.tag = "Fall";
+
+            BoxCollider box = fallTrigger.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            box.size = new Vector3(boxSize, height, boxSize);
+            box.center = new Vector3(0, yOffset - (height / 2) - 190f, 0); // Place below the track
         }
     }
 }

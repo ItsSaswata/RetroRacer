@@ -152,6 +152,12 @@ public class AIVehicleController : MonoBehaviour
     
     private bool wasRacing = false;
     
+    [Header("Mischief Car")]
+    public bool isMischiefCar = false;
+    
+    private float mischiefRammingCooldown = 0f;
+    private float mischiefRammingInterval = 2.5f; // seconds between ramming attempts
+    
     private void Awake()
     {
         vehicleController = GetComponent<SimcadeVehicleController>();
@@ -222,9 +228,10 @@ public class AIVehicleController : MonoBehaviour
 
         // Randomize nitro acceleration multiplier for this AI car
         vehicleController.nitroAccelerationMultiplier = Random.Range(1.01f, 1.05f);
+        vehicleController.nitroMaxSpeedMultiplier = Random.Range(1.01f, 1.05f);
         
         // Set higher turn angle for all AI cars
-        vehicleController.MaxTurnAngle = 33f;
+        vehicleController.MaxTurnAngle = Random.Range(32f, 35f);
     }
     
     private void Start()
@@ -560,6 +567,74 @@ public class AIVehicleController : MonoBehaviour
                 Debug.Log($"<color=red>{gameObject.name} has STOPPED defending.</color>");
             }
         }
+
+        // Mischief Car behavior
+        if (isMischiefCar)
+        {
+            mischiefRammingCooldown -= Time.deltaTime;
+            if (mischiefRammingCooldown <= 0f)
+            {
+                AIVehicleController target = null;
+                float closestDist = 999f;
+                string ramType = "";
+                // Try to find a car to side-ram (beside)
+                foreach (var other in otherVehicles)
+                {
+                    if (other == null || !other.isActiveAndEnabled) continue;
+                    Vector3 toOther = other.transform.position - transform.position;
+                    float dist = toOther.magnitude;
+                    float sideDot = Vector3.Dot(transform.right, toOther.normalized);
+                    float forwardDot = Vector3.Dot(transform.forward, toOther.normalized);
+                    // Side-ram: car is within 10m and mostly to the side
+                    if (Mathf.Abs(sideDot) > 0.7f && Mathf.Abs(forwardDot) < 0.5f && dist < 10f && dist < closestDist)
+                    {
+                        target = other;
+                        closestDist = dist;
+                        ramType = "side";
+                    }
+                }
+                // If no side target, try to back-ram (in front)
+                if (target == null)
+                {
+                    foreach (var other in otherVehicles)
+                    {
+                        if (other == null || !other.isActiveAndEnabled) continue;
+                        Vector3 toOther = other.transform.position - transform.position;
+                        float dist = toOther.magnitude;
+                        float forwardDot = Vector3.Dot(transform.forward, toOther.normalized);
+                        // Back-ram: car is within 15m and mostly in front
+                        if (forwardDot > 0.7f && dist > 4f && dist < 15f && dist < closestDist)
+                        {
+                            target = other;
+                            closestDist = dist;
+                            ramType = "back";
+                        }
+                    }
+                }
+                // If a target is found, steer/accelerate to ram
+                if (target != null)
+                {
+                    Vector3 toTarget = target.transform.position - transform.position;
+                    Vector3 localToTarget = transform.InverseTransformDirection(toTarget);
+                    // Side-ram: steer hard toward the side
+                    if (ramType == "side")
+                    {
+                        float steerDir = Mathf.Sign(localToTarget.x);
+                        currentSteer = Mathf.Lerp(currentSteer, steerDir * maxSteeringAngle, Time.deltaTime * 5f);
+                        Debug.Log($"[AI Mischief] {gameObject.name} attempting SIDE RAM on {target.gameObject.name}");
+                    }
+                    // Back-ram: accelerate hard
+                    else if (ramType == "back")
+                    {
+                        currentAcceleration = Mathf.Lerp(currentAcceleration, 1.2f, Time.deltaTime * 3f); // Over-accelerate
+                        Debug.Log($"[AI Mischief] {gameObject.name} attempting BACK RAM on {target.gameObject.name}");
+                    }
+                    // Add a little random handbrake for chaos
+                    if (Random.value < 0.2f) currentHandbrake = Mathf.Lerp(currentHandbrake, 0.5f, Time.deltaTime * 2f);
+                }
+                mischiefRammingCooldown = mischiefRammingInterval + Random.Range(-0.5f, 0.5f);
+            }
+        }
     }
 
     private float GetTargetSteer(Vector3 worldTargetPoint)
@@ -805,6 +880,16 @@ public class AIVehicleController : MonoBehaviour
         overtakeCooldownTimer = overtakeCooldown;
         // Ask the car being overtaken to defend
         target.TryStartDefense(vehicleController.Acceleration);
+    }
+
+    // Public method to stop the AI car (called when race finishes)
+    public void StopCar()
+    {
+        IsRacing = false;
+        if (vehicleController.inputManager != null)
+        {
+            vehicleController.inputManager.SetAIInputs(0f, 0f, 1f, false); // Full brake
+        }
     }
 
     // --- NEW: Dynamic Threat Field Avoidance System ---
