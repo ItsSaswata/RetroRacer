@@ -225,7 +225,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 218209585}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.013361393, y: -0.67305887, z: 0.012163092, w: 0.73936826}
+  m_LocalRotation: {x: 0.048782296, y: -0.67170244, z: 0.044407316, w: 0.73787814}
   m_LocalPosition: {x: 656.16724, y: 19.949173, z: -378.61508}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -565,7 +565,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 743049235}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.013361393, y: -0.67305887, z: 0.012163092, w: 0.73936826}
+  m_LocalRotation: {x: 0.048782296, y: -0.67170244, z: 0.044407316, w: 0.73787814}
   m_LocalPosition: {x: 656.16724, y: 19.949173, z: -378.61508}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -794,11 +794,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2822848874803777402, guid: 8bcf05f2600094240bc6e96a179646d3, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 27
       objectReference: {fileID: 0}
     - target: {fileID: 2822848874803777402, guid: 8bcf05f2600094240bc6e96a179646d3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 3.8
       objectReference: {fileID: 0}
     - target: {fileID: 2822848874803777402, guid: 8bcf05f2600094240bc6e96a179646d3, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1625,8 +1625,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1442448109520794594}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.26950026, z: -0, w: 0.9630003}
-  m_LocalPosition: {x: 649.64, y: 19.789, z: -382.19}
+  m_LocalRotation: {x: 0.01369749, y: -0.269473, z: 0.0038333084, w: 0.9629029}
+  m_LocalPosition: {x: 649.642, y: 19.593, z: -382.193}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1638,7 +1638,7 @@ Transform:
   - {fileID: 1258956374717735970}
   - {fileID: 4093802917011920705}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -31.269, z: 0}
+  m_LocalEulerAnglesHint: {x: 1.63, y: -31.269, z: 0}
 --- !u!4 &707395868389269516
 Transform:
   m_ObjectHideFlags: 0
@@ -1648,7 +1648,7 @@ Transform:
   m_GameObject: {fileID: 5732929322872098853}
   serializedVersion: 2
   m_LocalRotation: {x: -0.070012145, y: -0.36725277, z: -0.027734917, w: 0.92706776}
-  m_LocalPosition: {x: 649.11, y: 20.08, z: -372.66}
+  m_LocalPosition: {x: 649.03, y: 19.36, z: -372.58}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2720,6 +2720,10 @@ MonoBehaviour:
   VehicleSpeed: 0
   currentGear: 0
   gearSpeeds: 280000005000000078000000a0000000dc000000
+  maxShakeSpeed: 200
+  maxShakeAmplitude: 1.2
+  baseFrequency: 1
+  shakeStartSpeed: 60
   virtualCamera: {fileID: 0}
   fovCurve:
     serializedVersion: 2
@@ -3978,8 +3982,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 321616086125394216}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.5263746, z: -0, w: 0.85025275}
-  m_LocalPosition: {x: 655.81, y: 19.94, z: -373.74}
+  m_LocalRotation: {x: 0.015440565, y: -0.52628785, z: 0.009558946, w: 0.85011256}
+  m_LocalPosition: {x: 655.81, y: 19.31, z: -373.74}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3990,7 +3994,7 @@ Transform:
   - {fileID: 7654645278748686269}
   - {fileID: 3729288736798934303}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -63.522, z: 0}
+  m_LocalEulerAnglesHint: {x: 2.081, y: -63.522, z: 0}
 --- !u!33 &2592523406271515948
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -4155,7 +4159,7 @@ Transform:
   m_GameObject: {fileID: 5133139715137105854}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.45486426, z: -0, w: 0.8905608}
-  m_LocalPosition: {x: 652.5, y: 19.816, z: -378.27}
+  m_LocalPosition: {x: 652.5, y: 19.46, z: -378.27}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6604,6 +6608,10 @@ MonoBehaviour:
   VehicleSpeed: 0
   currentGear: 0
   gearSpeeds: 280000005000000078000000a0000000dc000000
+  maxShakeSpeed: 200
+  maxShakeAmplitude: 1.2
+  baseFrequency: 1
+  shakeStartSpeed: 60
   virtualCamera: {fileID: 0}
   fovCurve:
     serializedVersion: 2
@@ -7540,6 +7548,10 @@ MonoBehaviour:
   VehicleSpeed: 0
   currentGear: 0
   gearSpeeds: 280000005000000078000000a0000000dc000000
+  maxShakeSpeed: 200
+  maxShakeAmplitude: 1.2
+  baseFrequency: 1
+  shakeStartSpeed: 60
   virtualCamera: {fileID: 4139473371337478790}
   fovCurve:
     serializedVersion: 2
@@ -9036,6 +9048,10 @@ MonoBehaviour:
   VehicleSpeed: 0
   currentGear: 0
   gearSpeeds: 280000005000000078000000a0000000dc000000
+  maxShakeSpeed: 200
+  maxShakeAmplitude: 1.2
+  baseFrequency: 1
+  shakeStartSpeed: 60
   virtualCamera: {fileID: 0}
   fovCurve:
     serializedVersion: 2
@@ -9666,8 +9682,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8367952152685565074}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.018071288, y: -0.04955548, z: 0.34212178, w: 0.93817395}
-  m_LocalPosition: {x: 655.79, y: 20.3, z: -385.92}
+  m_LocalRotation: {x: 0.003936189, y: -0.04151825, z: 0.34318987, w: 0.9383397}
+  m_LocalPosition: {x: 655.72, y: 20.39, z: -385.92}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9678,7 +9694,7 @@ Transform:
   - {fileID: 2426132169186110187}
   - {fileID: 6164009183547044706}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -6.047, z: 40.071}
+  m_LocalEulerAnglesHint: {x: 2.056, y: -4.316, z: 40.102}
 --- !u!4 &8752145879903231753
 Transform:
   m_ObjectHideFlags: 0
@@ -10055,6 +10071,10 @@ MonoBehaviour:
   VehicleSpeed: 0
   currentGear: 0
   gearSpeeds: 280000005000000078000000a0000000dc000000
+  maxShakeSpeed: 200
+  maxShakeAmplitude: 1.2
+  baseFrequency: 1
+  shakeStartSpeed: 60
   virtualCamera: {fileID: 0}
   fovCurve:
     serializedVersion: 2
