@@ -264,7 +264,7 @@ Transform:
   m_GameObject: {fileID: 262375647}
   serializedVersion: 2
   m_LocalRotation: {x: 0.07682797, y: 0.00000038247003, z: -0.000000029471504, w: 0.9970444}
-  m_LocalPosition: {x: 304.65573, y: 108.60434, z: 543.975}
+  m_LocalPosition: {x: 291.00906, y: 107.73443, z: 559.89215}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -674,7 +674,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2647045898442802262, guid: 28437fdc3bca60c458fa04c226e527bd, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4569645593733779939, guid: 28437fdc3bca60c458fa04c226e527bd, type: 3}
       propertyPath: moveWithTransform
@@ -910,10 +910,6 @@ PrefabInstance:
     - target: {fileID: 5133139713709978575, guid: 045ea7d5027d0b8468164902ce8cf621, type: 3}
       propertyPath: m_Name
       value: Ash_Pluton
-      objectReference: {fileID: 0}
-    - target: {fileID: 5133139713709978575, guid: 045ea7d5027d0b8468164902ce8cf621, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

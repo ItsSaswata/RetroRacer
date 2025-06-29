@@ -1238,7 +1238,7 @@ MonoBehaviour:
   maxShakeSpeed: 200
   maxShakeAmplitude: 1.2
   baseFrequency: 1
-  shakeStartSpeed: 60
+  shakeStartSpeed: 80
   virtualCamera: {fileID: 0}
   fovCurve:
     serializedVersion: 2
@@ -1265,7 +1265,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   minFOV: 60
-  maxFOV: 75
+  maxFOV: 90
   AudioSystem: {fileID: 6244650937218379012}
 --- !u!114 &6479588334138578806
 MonoBehaviour:
@@ -1530,6 +1530,7 @@ GameObject:
   - component: {fileID: 5006801323887339126}
   - component: {fileID: 2202210000882612399}
   - component: {fileID: 8057657229552514581}
+  - component: {fileID: 4169806548002032167}
   m_Layer: 6
   m_Name: CarCamera
   m_TagString: Untagged
@@ -1655,6 +1656,23 @@ MonoBehaviour:
     Time: 0
     Smoothing: 0
     IgnoreY: 0
+--- !u!114 &4169806548002032167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7703394821021053573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bb026fafb42b14791938953eaace77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NoiseProfile: {fileID: 11400000, guid: 4715b35195881b1448b1d32d8834b611, type: 2}
+  PivotOffset: {x: 0, y: 0, z: 0}
+  AmplitudeGain: 0
+  FrequencyGain: 0
+  m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &8239809042403345935
 GameObject:
   m_ObjectHideFlags: 0

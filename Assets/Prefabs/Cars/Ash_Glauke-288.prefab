@@ -217,6 +217,7 @@ GameObject:
   - component: {fileID: 4139473371144328084}
   - component: {fileID: 3504461019194273019}
   - component: {fileID: 7635355361998353958}
+  - component: {fileID: 6838411103472198683}
   m_Layer: 6
   m_Name: CarCamera
   m_TagString: Untagged
@@ -342,6 +343,23 @@ MonoBehaviour:
     Time: 0
     Smoothing: 0
     IgnoreY: 0
+--- !u!114 &6838411103472198683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1096196351132932458}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bb026fafb42b14791938953eaace77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NoiseProfile: {fileID: 11400000, guid: 4715b35195881b1448b1d32d8834b611, type: 2}
+  PivotOffset: {x: 0, y: 0, z: 0}
+  AmplitudeGain: 0
+  FrequencyGain: 0
+  m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &1442448109624292080
 GameObject:
   m_ObjectHideFlags: 0
