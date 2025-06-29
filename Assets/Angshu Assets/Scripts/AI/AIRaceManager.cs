@@ -215,9 +215,13 @@ public class AIRaceManager : MonoBehaviour
                 GameObject prefabToSpawn = aiVehiclePrefabs[Random.Range(0, aiVehiclePrefabs.Count)];
                 carObj = Instantiate(prefabToSpawn, position, rotation);
                 carObj.name = $"AI_Racer_{aiIndex+1}";
+                
                 // Assign a unique material if available
                 if (aiCarMaterials != null && aiCarMaterials.Count > 0)
                 {
+                    bool materialApplied = false;
+                    
+                    // Try to find the Body child object
                     Transform body = carObj.transform.Find("Body");
                     if (body != null)
                     {
@@ -226,9 +230,54 @@ public class AIRaceManager : MonoBehaviour
                         {
                             Material mat = aiCarMaterials[aiIndex % aiCarMaterials.Count];
                             rend.material = mat;
+                            materialApplied = true;
+                            Debug.Log($"[AIRaceManager] Applied material {mat.name} to {carObj.name} Body renderer");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[AIRaceManager] Body object found but no Renderer component on {carObj.name}");
                         }
                     }
+                    else
+                    {
+                        // If Body not found, try to find any child with a Renderer
+                        Renderer[] renderers = carObj.GetComponentsInChildren<Renderer>();
+                        if (renderers.Length > 0)
+                        {
+                            // Find the main body renderer (usually the largest one)
+                            Renderer mainRenderer = renderers[0];
+                            float maxVolume = 0f;
+                            
+                            foreach (var rend in renderers)
+                            {
+                                if (rend.bounds.size.x * rend.bounds.size.y * rend.bounds.size.z > maxVolume)
+                                {
+                                    maxVolume = rend.bounds.size.x * rend.bounds.size.y * rend.bounds.size.z;
+                                    mainRenderer = rend;
+                                }
+                            }
+                            
+                            Material mat = aiCarMaterials[aiIndex % aiCarMaterials.Count];
+                            mainRenderer.material = mat;
+                            materialApplied = true;
+                            Debug.Log($"[AIRaceManager] Applied material {mat.name} to {carObj.name} main renderer ({mainRenderer.name})");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[AIRaceManager] No Body object or renderers found on {carObj.name}");
+                        }
+                    }
+                    
+                    if (!materialApplied)
+                    {
+                        Debug.LogError($"[AIRaceManager] Failed to apply material to {carObj.name} - no suitable renderer found");
+                    }
                 }
+                else
+                {
+                    Debug.LogWarning("[AIRaceManager] No AI car materials assigned in inspector");
+                }
+                
                 // Ensure AIVehicleController is present
                 var aiController = carObj.GetComponent<AIVehicleController>();
                 if (aiController == null)
@@ -756,5 +805,83 @@ public class AIRaceManager : MonoBehaviour
             }
         }
         return null;
+    }
+    
+    // Public method to apply materials to an existing AI car
+    public void ApplyMaterialToAICar(GameObject carObj, int materialIndex = -1)
+    {
+        if (aiCarMaterials == null || aiCarMaterials.Count == 0)
+        {
+            Debug.LogWarning("[AIRaceManager] No AI car materials assigned in inspector");
+            return;
+        }
+        
+        if (materialIndex < 0)
+        {
+            // Find the car in our AI racers list to get its index
+            materialIndex = aiRacers.FindIndex(ai => ai.gameObject == carObj);
+            if (materialIndex < 0)
+            {
+                Debug.LogWarning($"[AIRaceManager] Car {carObj.name} not found in AI racers list");
+                return;
+            }
+        }
+        
+        Material mat = aiCarMaterials[materialIndex % aiCarMaterials.Count];
+        bool materialApplied = false;
+        
+        // Try to find the Body child object
+        Transform body = carObj.transform.Find("Body");
+        if (body != null)
+        {
+            Renderer rend = body.GetComponent<Renderer>();
+            if (rend != null)
+            {
+                rend.material = mat;
+                materialApplied = true;
+                Debug.Log($"[AIRaceManager] Applied material {mat.name} to {carObj.name} Body renderer");
+            }
+        }
+        
+        if (!materialApplied)
+        {
+            // Fallback: find any renderer
+            Renderer[] renderers = carObj.GetComponentsInChildren<Renderer>();
+            if (renderers.Length > 0)
+            {
+                Renderer mainRenderer = renderers[0];
+                float maxVolume = 0f;
+                
+                foreach (var rend in renderers)
+                {
+                    if (rend.bounds.size.x * rend.bounds.size.y * rend.bounds.size.z > maxVolume)
+                    {
+                        maxVolume = rend.bounds.size.x * rend.bounds.size.y * rend.bounds.size.z;
+                        mainRenderer = rend;
+                    }
+                }
+                
+                mainRenderer.material = mat;
+                materialApplied = true;
+                Debug.Log($"[AIRaceManager] Applied material {mat.name} to {carObj.name} main renderer ({mainRenderer.name})");
+            }
+        }
+        
+        if (!materialApplied)
+        {
+            Debug.LogError($"[AIRaceManager] Failed to apply material to {carObj.name} - no suitable renderer found");
+        }
+    }
+    
+    // Public method to refresh materials for all AI cars
+    public void RefreshAllAICarMaterials()
+    {
+        for (int i = 0; i < aiRacers.Count; i++)
+        {
+            if (aiRacers[i] != null)
+            {
+                ApplyMaterialToAICar(aiRacers[i].gameObject, i);
+            }
+        }
     }
 }
