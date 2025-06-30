@@ -761,6 +761,8 @@ MonoBehaviour:
   nitroParticles:
   - {fileID: 2020372164096499523}
   - {fileID: 5315420386694454412}
+  - {fileID: 4569645593733779939}
+  - {fileID: 7685185086671262252}
   nitroSound: {fileID: 0}
   VehicleBody: {fileID: 3897756072739341964}
   forwardBodyTilt: 3
@@ -1105,7 +1107,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   minFOV: 60
-  maxFOV: 75
+  maxFOV: 90
   AudioSystem: {fileID: 3727422356599011864}
 --- !u!114 &7859395327922485224
 MonoBehaviour:
@@ -1949,6 +1951,11 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 4589301398810318675, guid: 818db796a1d8067479a33303892df031, type: 3}
   m_PrefabInstance: {fileID: 2574287166687791120}
   m_PrefabAsset: {fileID: 0}
+--- !u!198 &4569645593733779939 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 2077022532559149555, guid: 818db796a1d8067479a33303892df031, type: 3}
+  m_PrefabInstance: {fileID: 2574287166687791120}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5241318818262871965 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7711661453927065485, guid: 818db796a1d8067479a33303892df031, type: 3}
@@ -2019,5 +2026,10 @@ Transform:
 --- !u!198 &5315420386694454412 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 4589301398810318675, guid: 818db796a1d8067479a33303892df031, type: 3}
+  m_PrefabInstance: {fileID: 8535539430201494495}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &7685185086671262252 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 2077022532559149555, guid: 818db796a1d8067479a33303892df031, type: 3}
   m_PrefabInstance: {fileID: 8535539430201494495}
   m_PrefabAsset: {fileID: 0}

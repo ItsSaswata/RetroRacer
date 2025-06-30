@@ -1231,7 +1231,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   minFOV: 60
-  maxFOV: 75
+  maxFOV: 90
   AudioSystem: {fileID: 2213983250169569968}
 --- !u!114 &5148728988014989248
 MonoBehaviour:
